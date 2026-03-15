@@ -39,9 +39,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Show loading state
   invBody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
-    <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:2rem">progress_activity</span>
+    <i data-lucide="loader-2" style="animation:spin 1s linear infinite; width:32px; height:32px"></i>
     <p>Loading inventory…</p>
   </div></td></tr>`;
+  if (window.lucide) window.lucide.createIcons();
 
   // ── Real-time listener ────────────────────────────
   unsub = subscribeProducts((products) => {
@@ -273,10 +274,29 @@ function renderStats() {
   const low   = allItems.filter(p => p.stock <= 5 && p.stock > 0).length;
   const oos   = allItems.filter(p => p.stock <= 0).length;
   statsEl.innerHTML = `
-    <div class="inv-stat"><div class="inv-stat-label">TOTAL PRODUCTS</div><div class="inv-stat-value">${total}</div></div>
-    <div class="inv-stat"><div class="inv-stat-label">LOW STOCK</div><div class="inv-stat-value" style="color:var(--gold-400)">${low}</div></div>
-    <div class="inv-stat"><div class="inv-stat-label">OUT OF STOCK</div><div class="inv-stat-value" style="color:var(--red-400)">${oos}</div></div>
+    <div class="inv-stat" style="border-left: 4px solid #5211d4; background: #ffffff;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="inv-stat-label" style="margin-bottom:0;">TOTAL PRODUCTS</div>
+        <i data-lucide="package" style="color:var(--color-text-tertiary); width:20px;height:20px;"></i>
+      </div>
+      <div class="inv-stat-value" style="font-size:28px; font-weight:700;">${total}</div>
+    </div>
+    <div class="inv-stat" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="inv-stat-label" style="margin-bottom:0;">LOW STOCK</div>
+        <i data-lucide="alert-triangle" style="color:#d97706; width:20px;height:20px;"></i>
+      </div>
+      <div class="inv-stat-value" style="font-size:28px; font-weight:700; color:#d97706;">${low}</div>
+    </div>
+    <div class="inv-stat" style="border-left: 4px solid #ef4444; background: #fff1f2;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="inv-stat-label" style="margin-bottom:0;">OUT OF STOCK</div>
+        <i data-lucide="x-circle" style="color:#dc2626; width:20px;height:20px;"></i>
+      </div>
+      <div class="inv-stat-value" style="font-size:28px; font-weight:700; color:#dc2626;">${oos}</div>
+    </div>
   `;
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function renderTable() {
@@ -287,7 +307,8 @@ function renderTable() {
   if (searchTerm) items = items.filter(p => p.name.toLowerCase().includes(searchTerm));
 
   if (items.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">inventory_2</span><p>No items found</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i data-lucide="package-search" style="width:48px;height:48px;opacity:0.3"></i><p>No items found</p></div></td></tr>`;
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -295,10 +316,10 @@ function renderTable() {
     const low = p.stock <= 5 && p.stock > 0;
     const oos = p.stock <= 0;
     const statusBadge = oos
-      ? `<span class="badge badge-danger">Out of Stock</span>`
+      ? `<span class="badge" style="background:#fee2e2;color:var(--color-danger)">Out of Stock</span>`
       : low
-      ? `<span class="badge badge-warning">Low Stock</span>`
-      : `<span class="badge badge-success">In Stock</span>`;
+      ? `<span class="badge" style="background:#fef3c7;color:var(--color-warning)">Low Stock</span>`
+      : `<span class="badge" style="background:#d1fae5;color:var(--color-success)">In Stock</span>`;
     return `
       <tr class="anim-fade">
         <td>
@@ -316,16 +337,17 @@ function renderTable() {
         <td>
           <div class="row-actions">
             <button class="action-btn stock" onclick="openStockModal('${p.id}')" title="Update Stock">
-              <span class="material-symbols-outlined">package_2</span>
+              <i data-lucide="package-plus"></i>
             </button>
             <button class="action-btn edit" onclick="openEditModal('${p.id}')" title="Edit">
-              <span class="material-symbols-outlined">edit</span>
+              <i data-lucide="pencil"></i>
             </button>
             <button class="action-btn del" onclick="handleDelete('${p.id}','${p.name.replace(/'/g,"\\'")}' )" title="Delete">
-              <span class="material-symbols-outlined">delete</span>
+              <i data-lucide="trash-2"></i>
             </button>
           </div>
         </td>
       </tr>`;
   }).join("");
+  if (window.lucide) window.lucide.createIcons();
 }

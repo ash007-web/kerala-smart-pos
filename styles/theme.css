@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* ═══════════════════════════════════════════
+   QUICKBILL POS — DESIGN TOKENS
+   ═══════════════════════════════════════════ */
+:root {
+  /* Core Brand Colors */
+  --color-primary:       #5211d4; /* Deep Indigo */
+  --color-primary-hover: #3e0db0;
+  
+  /* Accents */
+  --color-success:       #10b981; /* Accent Emerald */
+  --color-warning:       #f59e0b; /* Warning Amber */
+  --color-danger:        #ef4444; /* Danger Rose */
+  --color-lavender:      #e9ddff; /* Accent Lavender */
+  
+  /* Layout & Surfaces */
+  --surface-bg:          #ffffff;
+  --surface-border:      rgba(0,0,0,0.06);
+  --color-surface:       #ffffff;
+  --color-bg:            #f7f5ff;
+  --color-border:        #e5e7eb;
+  /* Text */
+  --color-text-primary:  #111827;
+  --color-text-secondary:#6b7280;
+  
+  /* Additional Neutrals */
+  --color-neutral-100:   #f3f4f6;
+  --color-neutral-200:   #e5e7eb;
+  --color-neutral-300:   #d1d5db;
+  --color-neutral-800:   #1f2937;
+
+  /* Typography */
+  --font-family-body: 'Inter', system-ui, sans-serif;
+  
+  /* Type Scale */
+  --font-h1:         28px;
+  --font-h2:         22px;
+  --font-h3:         18px;
+  --font-body:       14px;
+  --font-small:      12px;
+  
+  --font-size-h1:    var(--font-h1);
+  --font-size-h2:    var(--font-h2);
+  --font-size-h3:    var(--font-h3);
+  --font-size-body:  var(--font-body);
+  --font-size-small: var(--font-small);
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Shape & Elevation */
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.05);
+  --shadow-md: 0 10px 28px rgba(0,0,0,0.08); /* Updated md shadow */
+  --shadow-lg: 0 20px 40px rgba(0,0,0,0.12);
+  --shadow-card: var(--shadow-sm);
+  --shadow-hover: var(--shadow-md);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Animation */
+  --transition-speed: 0.2s;
+  --transition-ease: ease;
+  
+  /* Touch target sizes (mobile) */
+  --touch-min: 44px;
+
+  /* Internal Dashboard Layout Defaults */
+  --sidebar-width: 260px;
+  --header-height: 72px;
+}

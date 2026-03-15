@@ -40,9 +40,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Show loading state
   productsGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-    <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:2rem">progress_activity</span>
+    <i data-lucide="loader-2" style="animation:spin 1s linear infinite; width:32px; height:32px"></i>
     <p>Loading products…</p>
   </div>`;
+  if(window.lucide) window.lucide.createIcons();
 
   let firstLoad = true;
   function startListener() {
@@ -131,7 +132,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btn = document.getElementById("completeBtn");
     btn.disabled = true;
     const originalHtml = btn.innerHTML;
-    btn.innerHTML = `<span class="material-symbols-outlined" style="animation:spin 0.8s linear infinite">progress_activity</span> Processing…`;
+    btn.innerHTML = `<i data-lucide="loader-2" style="animation:spin 0.8s linear infinite" class="lucide"></i> Processing…`;
+    if(window.lucide) window.lucide.createIcons();
     try {
       const { billId, total } = await completeSale({
         items: cart.map(i => ({ id:i.id, name:i.name, price:i.price, qty:i.qty })),
@@ -177,7 +179,8 @@ function renderGrid() {
   const grid = document.getElementById("productsGrid");
   if (!grid) return;
   if (filteredProds.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="material-symbols-outlined">search_off</span><p>No products found</p></div>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i data-lucide="search-x" style="width:32px;height:32px"></i><p>No products found</p></div>`;
+    if(window.lucide) window.lucide.createIcons();
     return;
   }
   grid.innerHTML = filteredProds.map(p => {
@@ -197,10 +200,11 @@ function renderGrid() {
           <span class="product-stock ${low?'low':''}">${p.stock}</span>
         </div>
         <button class="add-btn" onclick="event.stopPropagation();addToCart('${p.id}')" ${oos?'disabled':''}>
-          <span class="material-symbols-outlined">add</span>
+          <i data-lucide="plus"></i>
         </button>
       </div>`;
   }).join("");
+  if(window.lucide) window.lucide.createIcons();
 }
 
 function renderBill() {
@@ -212,10 +216,11 @@ function renderBill() {
   if (cart.length === 0) {
     el.innerHTML = `
       <div class="empty-bill">
-        <span class="material-symbols-outlined">shopping_basket</span>
+        <i data-lucide="shopping-cart" style="width:48px;height:48px;opacity:0.3;"></i>
         <p>No items added</p>
         <small>Tap a product or press / to search</small>
       </div>`;
+    if(window.lucide) window.lucide.createIcons();
     if (summary) summary.style.display = "none";
     if (btn)     btn.disabled = true;
     return;
@@ -228,13 +233,14 @@ function renderBill() {
         <div class="bill-item-unit">${fmtINR(i.price)} each</div>
       </div>
       <div class="qty-ctrl">
-        <button class="qty-btn" onclick="changeQty('${i.id}',-1)"><span class="material-symbols-outlined">remove</span></button>
+        <button class="qty-btn" onclick="changeQty('${i.id}',-1)"><i data-lucide="minus"></i></button>
         <span class="qty-val">${i.qty}</span>
-        <button class="qty-btn" onclick="changeQty('${i.id}',1)"><span class="material-symbols-outlined">add</span></button>
+        <button class="qty-btn" onclick="changeQty('${i.id}',1)"><i data-lucide="plus"></i></button>
       </div>
       <span class="item-total">${fmtINR(i.price * i.qty)}</span>
-      <button class="remove-item" onclick="removeItem('${i.id}')"><span class="material-symbols-outlined">close</span></button>
+      <button class="remove-item" onclick="removeItem('${i.id}')"><i data-lucide="x"></i></button>
     </div>`).join("");
+  if(window.lucide) window.lucide.createIcons();
 
   const sub  = cart.reduce((s,i) => s + i.price * i.qty, 0);
   const tax  = +(sub * TAX).toFixed(2);

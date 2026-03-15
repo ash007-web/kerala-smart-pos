@@ -3,74 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">\n  <title>Kerala Smart POS — Sales Ledger</title>
+  <title>QuickBill POS — Sales Ledger</title>
+  <link rel="icon" href="assets/logo/quickbill-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles/global.css">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
   <style>
     /* ── Summary stats ── */
-    .ledger-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:26px; }
+    .ledger-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
     .lstat {
-      background:var(--bg-surface); border:1px solid var(--border-subtle);
-      border-radius:var(--r-xl); padding:18px 20px;
-      display:flex; gap:14px; align-items:center;
-      box-shadow:var(--shadow-sm);
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-xl); padding:20px 24px;
+      display:flex; gap:16px; align-items:center;
+      box-shadow:var(--shadow-card);
     }
     .lstat-ico {
-      width:44px; height:44px; border-radius:var(--r-md); flex-shrink:0;
+      width:48px; height:48px; border-radius:var(--radius-lg); flex-shrink:0;
       display:flex; align-items:center; justify-content:center;
     }
-    .lstat-ico .material-symbols-outlined { font-size:1.2rem; }
-    .lstat-label { font-size:0.78rem; font-weight:600; color:var(--text-secondary); margin-bottom:3px; }
-    .lstat-value { font-family:var(--font-display); font-size:1.5rem; }
-    .lstat-sub   { font-size:0.75rem; color:var(--text-tertiary); }
+    .lstat-ico .lucide { width:24px; height:24px; }
+    .lstat-label { font-size:var(--font-size-small); font-weight:var(--font-weight-semibold); color:var(--color-text-secondary); margin-bottom:4px; }
+    .lstat-value { font-family:var(--font-body); font-size:var(--font-size-h2); font-weight:var(--font-weight-bold); color:var(--color-text-primary); }
+    .lstat-sub   { font-size:var(--font-size-small); color:var(--color-text-tertiary); }
 
     /* ── Ledger controls ── */
     .ledger-bar {
       display:flex; align-items:center; justify-content:space-between;
       flex-wrap:wrap; gap:12px; margin-bottom:16px;
     }
-    .filter-pills { display:flex; gap:0; background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--r-lg); padding:3px; }
+    .filter-pills { display:flex; gap:0; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:4px; }
     .filter-pill {
-      padding:6px 14px; border:none; background:transparent;
-      font-size:0.82rem; font-weight:600; color:var(--text-secondary);
-      border-radius: var(--r-md); cursor:pointer;
-      transition:all var(--t-fast) var(--ease);
+      padding:6px 16px; border:none; background:transparent;
+      font-size:var(--font-size-small); font-weight:var(--font-weight-semibold); color:var(--color-text-secondary);
+      border-radius: var(--radius-md); cursor:pointer;
+      transition:all var(--transition-speed);
     }
-    .filter-pill.active { background:var(--primary); color:var(--text-on-gold); }
-    .filter-pill:hover:not(.active) { color:var(--text-primary); }
+    .filter-pill.active { background:var(--color-primary); color:white; }
+    .filter-pill:hover:not(.active) { color:var(--color-text-primary); }
     .date-range {
       display:flex; align-items:center; gap:8px;
     }
     .date-input {
-      height:36px; padding:0 12px;
-      background:var(--bg-surface); border:1px solid var(--border-default);
-      border-radius:var(--r-md); font-size:0.82rem; color:var(--text-primary);
+      height:40px; padding:0 12px;
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-md); font-size:var(--font-size-body); color:var(--color-text-primary);
     }
-    .date-input:focus { outline:none; border-color:var(--primary); }
-    .date-range-sep { font-size:0.78rem; color:var(--text-tertiary); }
+    .date-input:focus { outline:none; border-color:var(--color-primary); }
+    .date-range-sep { font-size:var(--font-size-small); color:var(--color-text-tertiary); }
 
     /* ── Bill ID ── */
-    .bill-id { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; color:var(--primary); }
+    .bill-id { font-family:var(--font-mono); font-size:var(--font-size-small); font-weight:var(--font-weight-bold); color:var(--color-primary); }
 
     /* ── Expand row ── */
     .expand-row { display:none; }
     .expand-row.open { display:table-row; }
     .expand-cell {
-      padding:0; background:var(--sand-50);
-      border-bottom:1px solid var(--border-default);
+      padding:0; background:var(--color-neutral-100);
+      border-bottom:1px solid var(--color-border);
     }
-    body.dark .expand-cell { background:var(--bg-elevated); }
-    .expand-inner { padding:16px 20px; }
+    body.dark .expand-cell { background:var(--color-neutral-800); }
+    .expand-inner { padding:16px 24px; }
     .expand-items-header {
-      font-size:0.72rem; font-weight:700; letter-spacing:0.06em;
-      color:var(--text-tertiary); text-transform:uppercase;
+      font-size:var(--font-size-small); font-weight:var(--font-weight-bold); letter-spacing:0.06em;
+      color:var(--color-text-tertiary); text-transform:uppercase;
       display:grid; grid-template-columns:1fr 80px 80px 80px;
-      padding-bottom:6px; border-bottom:1px solid var(--border-subtle); margin-bottom:8px;
+      padding-bottom:8px; border-bottom:1px solid var(--color-border); margin-bottom:12px;
     }
     .expand-item-row {
       display:grid; grid-template-columns:1fr 80px 80px 80px;
-      font-size:0.82rem; padding:5px 0;
-      border-bottom:1px solid var(--border-subtle);
+      font-size:var(--font-size-small); padding:6px 0;
+      border-bottom:1px solid var(--color-border);
     }
     .expand-item-row:last-child { border-bottom:none; }
     .expand-item-row .mono { font-family:var(--font-mono); }
@@ -78,23 +82,23 @@
     /* ── Pagination ── */
     .pagination {
       display:flex; align-items:center; justify-content:space-between;
-      padding:14px 16px;
-      background:var(--sand-50); border-top:1px solid var(--border-subtle);
+      padding:16px 20px;
+      background:var(--color-neutral-100); border-top:1px solid var(--color-border);
     }
-    body.dark .pagination { background:var(--bg-elevated); }
-    .page-info { font-size:0.82rem; color:var(--text-secondary); }
-    .page-controls { display:flex; gap:4px; align-items:center; }
+    body.dark .pagination { background:var(--color-neutral-800); }
+    .page-info { font-size:var(--font-size-small); color:var(--color-text-secondary); }
+    .page-controls { display:flex; gap:6px; align-items:center; }
     .page-btn {
-      width:32px; height:32px; border-radius:var(--r-md);
-      border:1px solid var(--border-default); background:transparent;
-      font-size:0.82rem; font-weight:600; color:var(--text-secondary);
+      width:36px; height:36px; border-radius:var(--radius-md);
+      border:1px solid var(--color-border); background:transparent;
+      font-size:var(--font-size-small); font-weight:var(--font-weight-semibold); color:var(--color-text-secondary);
       display:flex; align-items:center; justify-content:center;
-      cursor:pointer; transition:all var(--t-fast) var(--ease);
+      cursor:pointer; transition:all var(--transition-speed);
     }
-    .page-btn:hover:not(:disabled) { border-color:var(--primary); color:var(--primary); }
-    .page-btn.active { background:var(--primary); color:var(--gold-900); border-color:var(--primary); }
+    .page-btn:hover:not(:disabled) { border-color:var(--color-primary); color:var(--color-primary); }
+    .page-btn.active { background:var(--color-primary); color:white; border-color:var(--color-primary); }
     .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
-    .page-btn .material-symbols-outlined { font-size:1rem; }
+    .page-btn .lucide { width:16px; height:16px; }
   </style>
 </head>
 <body>
@@ -109,11 +113,11 @@
         <p class="page-subtitle">All transactions — live from Firestore</p>
       </div>
       <div class="flex gap-2">
-        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
-          <span class="material-symbols-outlined">download</span> Export CSV
+        <button class="btn btn-ghost" onclick="exportCSV()">
+          <i data-lucide="download"></i> Export CSV
         </button>
-        <button class="btn btn-primary btn-sm" onclick="location.href='pos.html'">
-          <span class="material-symbols-outlined">add_circle</span> New Bill
+        <button class="btn btn-primary" onclick="location.href='pos.html'">
+          <i data-lucide="calculator"></i> New Bill
         </button>
       </div>
     </div>
@@ -134,11 +138,11 @@
         <button class="filter-pill" data-status="refunded">Refunded</button>
       </div>
       <div class="date-range">
-        <span class="material-symbols-outlined" style="color:var(--text-tertiary);font-size:1rem;">calendar_today</span>
+        <i data-lucide="calendar" style="color:var(--color-text-tertiary);width:18px;height:18px;"></i>
         <input type="date" class="date-input" id="dateFrom">
         <span class="date-range-sep">to</span>
         <input type="date" class="date-input" id="dateTo">
-        <button class="btn btn-ghost btn-sm" onclick="applyDateFilter()">Apply</button>
+        <button class="btn btn-ghost" onclick="applyDateFilter()">Apply</button>
       </div>
     </div>
 
@@ -217,13 +221,13 @@
       const count    = allTx.length;
       const avg      = count ? revenue / count : 0;
       const statHtml = [
-        { ico:"trending_up", bg:"rgba(29,158,117,0.1)", ic:"var(--green-400)", label:"Total Revenue", value: fmtINR(revenue), sub:`From ${count} bills` },
-        { ico:"receipt_long",bg:"rgba(239,159,39,0.1)",ic:"var(--gold-400)",   label:"Bills Issued",  value: count, sub:"Lifetime total" },
-        { ico:"equalizer",   bg:"rgba(55,138,221,0.1)",ic:"var(--blue-400)",   label:"Avg. Bill",     value: fmtINRShort(avg), sub:"Per transaction" },
+        { ico:"trending-up",  bg:"#d1fae5", ic:"var(--color-success)", label:"Total Revenue", value: fmtINR(revenue), sub:`From ${count} bills` },
+        { ico:"receipt-text", bg:"#fef3c7", ic:"var(--color-warning)", label:"Bills Issued",  value: count, sub:"Lifetime total" },
+        { ico:"bar-chart-2",  bg:"#e0e7ff", ic:"var(--color-primary)", label:"Avg. Bill",     value: fmtINRShort(avg), sub:"Per transaction" },
       ].map(s => `
         <div class="lstat anim-fade-up">
           <div class="lstat-ico" style="background:${s.bg};">
-            <span class="material-symbols-outlined" style="color:${s.ic};">${s.ico}</span>
+            <i data-lucide="${s.ico}" style="color:${s.ic};"></i>
           </div>
           <div>
             <div class="lstat-label">${s.label}</div>
@@ -232,49 +236,50 @@
           </div>
         </div>`).join("");
       document.getElementById("ledgerStats").innerHTML = statHtml;
+      if (window.lucide) window.lucide.createIcons();
     }
 
     function renderTable() {
       const body   = document.getElementById("ledgerBody");
       const start  = page * PAGE_SIZE;
       const slice  = filtered.slice(start, start + PAGE_SIZE);
-      const methodIcon = { cash:"payments", upi:"qr_code", card:"credit_card" };
-      const methodColor= { cash:"var(--green-400)", upi:"var(--blue-400)", card:"var(--red-400)" };
+      const methodIcon = { cash:"banknote", upi:"qr-code", card:"credit-card" };
+      const methodColor= { cash:"var(--color-success)", upi:"var(--color-primary)", card:"var(--color-warning)" };
 
       if (filtered.length === 0) {
-        body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><p>No transactions found</p></div></td></tr>`;
+        body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i data-lucide="receipt" style="width:48px;height:48px;opacity:0.3"></i><p>No transactions found</p></div></td></tr>`;
+        if (window.lucide) window.lucide.createIcons();
         return;
       }
 
       body.innerHTML = slice.flatMap((t,i) => {
         const statusBadge = t.status === "paid"
-          ? `<span class="badge badge-success">Paid</span>`
+          ? `<span class="badge" style="background:#d1fae5;color:var(--color-success)">Paid</span>`
           : t.status === "refunded"
-          ? `<span class="badge badge-neutral">Refunded</span>`
-          : `<span class="badge badge-warning">Pending</span>`;
+          ? `<span class="badge" style="background:var(--color-neutral-300);color:var(--color-text-secondary)">Refunded</span>`
+          : `<span class="badge" style="background:#fee2e2;color:var(--color-danger)">Pending</span>`;
         const itemCount = (t.items ?? []).length;
         const rowId = `row-${i}`;
         const row = `
           <tr class="anim-fade">
             <td><span class="bill-id">${t.billId ?? t.id.slice(0,10)}</span></td>
             <td>
-              <div style="font-size:0.875rem;font-weight:600;">${fmtDate(t.timestamp)}</div>
-              <div style="font-size:0.75rem;color:var(--text-tertiary);">${fmtTime(t.timestamp)}</div>
+              <div style="font-size:var(--font-size-small);font-weight:var(--font-weight-semibold);">${fmtDate(t.timestamp)}</div>
+              <div style="font-size:12px;color:var(--color-text-tertiary);">${fmtTime(t.timestamp)}</div>
             </td>
-            <td style="font-size:0.875rem;">${itemCount} item${itemCount!==1?'s':''}</td>
+            <td style="font-size:var(--font-size-small);">${itemCount} item${itemCount!==1?'s':''}</td>
             <td>
               <div style="display:flex;align-items:center;gap:5px;">
-                <span class="material-symbols-outlined" style="font-size:0.9rem;color:${methodColor[t.paymentMethod]??'var(--text-tertiary)'};">
-                  ${methodIcon[t.paymentMethod]??'payments'}
-                </span>
-                <span style="font-size:0.82rem;text-transform:uppercase;font-weight:600;">${t.paymentMethod??'—'}</span>
+                <i data-lucide="${methodIcon[t.paymentMethod]??'banknote'}" style="width:16px;height:16px;color:${methodColor[t.paymentMethod]??'var(--color-text-tertiary)'};">
+                </i>
+                <span style="font-size:var(--font-size-small);text-transform:uppercase;font-weight:var(--font-weight-semibold);">${t.paymentMethod??'—'}</span>
               </div>
             </td>
             <td>${statusBadge}</td>
-            <td class="text-right mono" style="font-weight:700;">${fmtINR(t.total)}</td>
+            <td class="text-right mono" style="font-weight:var(--font-weight-bold);">${fmtINR(t.total)}</td>
             <td class="text-right">
               <button class="icon-btn" onclick="toggleExpand('${rowId}')" title="View items">
-                <span class="material-symbols-outlined" id="expand-icon-${rowId}">expand_more</span>
+                <i data-lucide="chevron-down" id="expand-icon-${rowId}"></i>
               </button>
             </td>
           </tr>
@@ -291,16 +296,17 @@
                     <span class="mono">${fmtINR(item.price)}</span>
                     <span class="mono">${fmtINR(item.lineTotal)}</span>
                   </div>`).join("")}
-                <div style="display:flex;justify-content:flex-end;gap:24px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-subtle);font-size:0.82rem;">
+                <div style="display:flex;justify-content:flex-end;gap:24px;margin-top:10px;padding-top:10px;border-top:1px solid var(--color-border);font-size:var(--font-size-small);">
                   <span>Subtotal: <strong class="mono">${fmtINR(t.subtotal)}</strong></span>
                   <span>GST: <strong class="mono">${fmtINR(t.tax)}</strong></span>
-                  <span style="font-size:0.9rem;">Total: <strong class="mono" style="color:var(--primary);">${fmtINR(t.total)}</strong></span>
+                  <span style="font-size:var(--font-size-body);">Total: <strong class="mono" style="color:var(--color-primary);">${fmtINR(t.total)}</strong></span>
                 </div>
               </div>
             </td>
           </tr>`;
         return [row];
       }).join("");
+      if (window.lucide) window.lucide.createIcons();
     }
 
     window.toggleExpand = function(id) {
@@ -308,7 +314,10 @@
       const icon = document.getElementById("expand-icon-" + id);
       if (!row) return;
       row.classList.toggle("open");
-      icon.textContent = row.classList.contains("open") ? "expand_less" : "expand_more";
+      
+      const isExpanded = row.classList.contains("open");
+      icon.innerHTML = `<i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" id="expand-icon-${id}"></i>`;
+      if (window.lucide) window.lucide.createIcons();
     };
 
     function renderPaginator() {
@@ -324,7 +333,7 @@
       const makePage = (i) => `<button class="page-btn${i===page?' active':''}" onclick="goPage(${i})">${i+1}</button>`;
 
       let html = `<button class="page-btn" onclick="goPage(${page-1})" ${page===0?'disabled':''}>
-        <span class="material-symbols-outlined">chevron_left</span></button>`;
+        <i data-lucide="chevron-left"></i></button>`;
 
       if (pages <= 7) {
         for (let i=0;i<pages;i++) html += makePage(i);
@@ -337,9 +346,10 @@
       }
 
       html += `<button class="page-btn" onclick="goPage(${page+1})" ${page>=pages-1?'disabled':''}>
-        <span class="material-symbols-outlined">chevron_right</span></button>`;
+        <i data-lucide="chevron-right"></i></button>`;
 
       controls.innerHTML = html;
+      if(window.lucide) window.lucide.createIcons();
     }
 
     window.goPage = function(p) {

@@ -19,16 +19,16 @@ window.fmtDate      = _fmtDate;
 window.fmtTime      = _fmtTime;
 
 const NAV_ITEMS = [
-  { href:"index.html",      icon:"dashboard",     label:"Dashboard"  },
-  { href:"pos.html",        icon:"point_of_sale", label:"New Bill"   },
-  { href:"inventory.html",  icon:"inventory_2",   label:"Inventory"  },
-  { href:"customers.html",  icon:"group",         label:"Customers"  },
-  { href:"ledger.html",     icon:"receipt_long",  label:"Ledger"     },
-  { href:"reports.html",    icon:"bar_chart",     label:"Reports"    },
+  { href:"index.html",      icon:"layout-dashboard",     label:"Dashboard"  },
+  { href:"pos.html",        icon:"calculator",           label:"New Bill"   },
+  { href:"inventory.html",  icon:"package",              label:"Inventory"  },
+  { href:"customers.html",  icon:"users",                label:"Customers"  },
+  { href:"ledger.html",     icon:"receipt-text",         label:"Ledger"     },
+  { href:"reports.html",    icon:"bar-chart-3",          label:"Reports"    },
 ];
 
 const BOTTOM_ITEMS = [
-  { href:"settings.html",   icon:"settings",      label:"Settings"   },
+  { href:"settings.html",   icon:"settings",             label:"Settings"   },
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -72,30 +72,20 @@ function buildHeader(user) {
     <header class="ksp-header anim-fade">
       <a href="index.html" class="logo" style="text-decoration:none;">
         <div class="logo-mark">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Kerala Smart POS logo">
-            <!-- Storefront arch -->
-            <path d="M3 10.5C3 7.46 7.03 5 12 5C16.97 5 21 7.46 21 10.5" stroke="#412402" stroke-width="1.8" stroke-linecap="round"/>
-            <!-- Kathakali eye motif -->
-            <ellipse cx="12" cy="10" rx="3" ry="2" stroke="#412402" stroke-width="1.5"/>
-            <circle cx="12" cy="10" r="1" fill="#412402"/>
-            <!-- Receipt lines -->
-            <line x1="7" y1="14" x2="17" y2="14" stroke="#412402" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="8" y1="17" x2="16" y2="17" stroke="#412402" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="9" y1="20" x2="15" y2="20" stroke="#412402" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
+          <img src="assets/logo/quickbill-mark.svg" alt="QuickBill Logo Mark" style="width: 24px; height: 24px;">
         </div>
         <div>
-          Kerala Smart POS
-          <span>Digital Kirana Platform</span>
+          QuickBill POS
+          <span>Seamless Retailing</span>
         </div>
       </a>
       <div class="header-right">
         <button class="icon-btn notif-btn" title="Low stock alerts" onclick="window.location.href='inventory.html'">
-          <span class="material-symbols-outlined">notifications</span>
+          <i data-lucide="bell"></i>
           <span class="notif-dot" id="notifDot" style="display:none;"></span>
         </button>
         <button class="icon-btn" title="Toggle dark mode" id="darkToggleBtn" onclick="toggleDarkMode()">
-          <span class="material-symbols-outlined" id="darkIcon">dark_mode</span>
+          <i data-lucide="moon" id="darkIcon"></i>
         </button>
         <div class="user-avatar" title="${user?.email ?? ''}" onclick="window.location.href='settings.html'">${initials}</div>
       </div>
@@ -111,7 +101,7 @@ function buildSidebar(activePage) {
     const active = activePage === item.href ? "active" : "";
     return `
       <a href="${item.href}" class="nav-item ${active}" title="${item.label}">
-        <span class="material-symbols-outlined">${item.icon}</span>
+        <i data-lucide="${item.icon}"></i>
         <span>${item.label}</span>
       </a>`;
   };
@@ -122,13 +112,17 @@ function buildSidebar(activePage) {
       ${NAV_ITEMS.map(makeItem).join("")}
       <div class="sidebar-bottom">
         ${BOTTOM_ITEMS.map(makeItem).join("")}
-        <button class="nav-item" onclick="handleLogout()" style="width:100%;background:transparent;color:var(--red-400);">
-          <span class="material-symbols-outlined">logout</span>
+        <button class="nav-item" onclick="handleLogout()" style="width:100%;background:transparent;color:var(--color-danger);">
+          <i data-lucide="log-out"></i>
           <span>Logout</span>
         </button>
       </div>
     </nav>
   `;
+  
+  if (window.lucide) {
+      window.lucide.createIcons();
+  }
 }
 
 async function loadLowStockBadge() {
@@ -158,7 +152,11 @@ function applyDarkModePreference() {
   if (localStorage.getItem("ksp-dark") === "true") {
     document.body.classList.add("dark");
     const icon = document.getElementById("darkIcon");
-    if (icon) icon.textContent = "light_mode";
+    if (icon) {
+        icon.setAttribute("data-lucide", "sun");
+        // We re-render specifically this icon
+        if (window.lucide) window.lucide.createIcons();
+    }
   }
 }
 
@@ -166,7 +164,13 @@ window.toggleDarkMode = function() {
   const isDark = document.body.classList.toggle("dark");
   localStorage.setItem("ksp-dark", isDark);
   const icon = document.getElementById("darkIcon");
-  if (icon) icon.textContent = isDark ? "light_mode" : "dark_mode";
+  if (icon) {
+      icon.setAttribute("data-lucide", isDark ? "sun" : "moon");
+      // Since changing an attribute directly doesn't automatically hot-swap the SVG via lucide in all cases natively, 
+      // easiest way is replacing innerHTML or creating a fresh icon object:
+      icon.innerHTML = `<i data-lucide="${isDark ? 'sun' : 'moon'}" id="darkIcon"></i>`;
+      if (window.lucide) window.lucide.createIcons();
+  }
 };
 
 // ─── Global: relativeTime ───────────────────────────────
