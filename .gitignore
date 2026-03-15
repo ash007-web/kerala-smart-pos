@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 node_modules/
 dist/
 .DS_Store
 *.local
+=======
+node_modules
+.env
+dist
+.vite
+.DS_Store
+>>>>>>> 458455c605afe870edceb1d570a060691062940f
