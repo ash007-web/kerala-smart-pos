@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">\n  <title>Kerala Smart POS — Reports</title>
+  <link rel="stylesheet" href="styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    /* ── Page layout ── */
+    .rep-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .period-pills { display:flex; gap:0; background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--r-lg); padding:3px; }
+    .period-pill { padding:6px 16px; border:none; background:transparent; font-size:0.82rem; font-weight:600; color:var(--text-secondary); border-radius:var(--r-md); cursor:pointer; transition:all var(--t-fast) var(--ease); }
+    .period-pill.active { background:var(--primary); color:var(--text-on-gold); }
+    .period-pill:hover:not(.active) { color:var(--text-primary); }
+
+    /* ── Summary strip ── */
+    .rep-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px; }
+    .rep-stat { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--r-xl); padding:18px 20px; box-shadow:var(--shadow-sm); }
+    .rep-stat-ico { width:38px; height:38px; border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+    .rep-stat-ico .material-symbols-outlined { font-size:1.1rem; }
+    .rep-stat-label { font-size:0.72rem; font-weight:700; color:var(--text-secondary); letter-spacing:0.04em; margin-bottom:4px; }
+    .rep-stat-value { font-family:var(--font-display); font-size:1.5rem; }
+
+    /* ── Grid ── */
+    .rep-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; }
+    @media(max-width:1100px) { .rep-grid { grid-template-columns:1fr; } }
+
+    /* ── Bar chart (pure CSS) ── */
+    .chart-title { font-size:0.9rem; font-weight:700; margin-bottom:16px; }
+    .bar-chart { display:flex; flex-direction:column; gap:10px; }
+    .bar-row { display:flex; align-items:center; gap:10px; }
+    .bar-label { font-size:0.78rem; color:var(--text-secondary); width:80px; flex-shrink:0; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bar-track { flex:1; height:10px; background:var(--sand-100); border-radius:5px; overflow:hidden; }
+    body.dark .bar-track { background:var(--bg-elevated); }
+    .bar-fill { height:100%; border-radius:5px; background:var(--primary); transition:width 0.6s var(--ease); }
+    .bar-val { font-size:0.75rem; font-family:var(--font-mono); color:var(--text-secondary); min-width:52px; }
+
+    /* ── Payment donut ── */
+    .donut-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; }
+    .donut-legend { width:100%; display:flex; flex-direction:column; gap:8px; }
+    .donut-row { display:flex; align-items:center; gap:8px; font-size:0.82rem; }
+    .donut-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .donut-name { flex:1; color:var(--text-secondary); }
+    .donut-pct { font-weight:700; font-family:var(--font-mono); }
+
+    /* ── Top products table ── */
+    .top-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-subtle); }
+    .top-row:last-child { border:none; }
+    .top-rank { width:24px; height:24px; border-radius:50%; background:var(--sand-100); display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; color:var(--text-secondary); flex-shrink:0; }
+    .top-rank.gold { background:var(--gold-50); color:var(--gold-600); }
+    .top-name { flex:1; font-size:0.85rem; font-weight:600; }
+    .top-qty { font-family:var(--font-mono); font-size:0.82rem; color:var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <header id="navbar"></header>
+  <aside id="sidebar"></aside>
+
+  <main class="main-content">
+    <!-- Header -->
+    <div class="rep-header anim-fade-up">
+      <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle" id="periodLabel">Loading…</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="period-pills">
+          <button class="period-pill active" data-period="today">Today</button>
+          <button class="period-pill" data-period="week">7 Days</button>
+          <button class="period-pill" data-period="month">30 Days</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="exportReport()">
+          <span class="material-symbols-outlined">download</span> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="rep-summary" id="repSummary">
+      <div class="rep-stat"><div class="rep-stat-ico skeleton" style="width:38px;height:38px;"></div><div class="skeleton" style="height:24px;width:80px;margin-top:12px;"></div></div>
+      <div class="rep-stat"><div class="rep-stat-ico skeleton" style="width:38px;height:38px;"></div><div class="skeleton" style="height:24px;width:80px;margin-top:12px;"></div></div>
+      <div class="rep-stat"><div class="rep-stat-ico skeleton" style="width:38px;height:38px;"></div><div class="skeleton" style="height:24px;width:80px;margin-top:12px;"></div></div>
+      <div class="rep-stat"><div class="rep-stat-ico skeleton" style="width:38px;height:38px;"></div><div class="skeleton" style="height:24px;width:80px;margin-top:12px;"></div></div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="rep-grid">
+
+      <!-- Left: Top Products -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card anim-fade-up d2">
+          <div class="chart-title">Top Selling Products</div>
+          <div class="bar-chart" id="topProductsChart">
+            <div class="skeleton" style="height:10px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:10px;margin-bottom:8px;width:80%;"></div>
+            <div class="skeleton" style="height:10px;margin-bottom:8px;width:60%;"></div>
+          </div>
+        </div>
+
+        <div class="card anim-fade-up d3">
+          <div class="chart-title">Revenue by Day</div>
+          <div id="dailyChart">
+            <div class="skeleton" style="height:150px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Payment mix + top list -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card anim-fade-up d2">
+          <div class="chart-title">Payment Mix</div>
+          <div class="donut-wrap">
+            <svg id="donutSvg" width="120" height="120" viewBox="0 0 120 120"></svg>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+
+        <div class="card anim-fade-up d3">
+          <div class="chart-title">Top Products (Qty)</div>
+          <div id="topList">
+            <div class="skeleton" style="height:38px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:38px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:38px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { fetchTransactionsByRange } from "./js/services/transactionService.js";
+    import { waitForAuth }              from "./js/firebase.js";
+    import "./js/navigation.js";
+
+    // ── Wait for auth before Firestore access ────────────────
+    try {
+      const user = await waitForAuth();
+      console.log("[KSP] Reports auth ready, uid:", user.uid);
+    } catch { /* redirected */ }
+
+    let currentTxs = [];
+    let activePeriod = "today";
+
+    const COLORS = {
+      cash:  "#1D9E75",
+      upi:   "#378ADD",
+      card:  "#D85A30",
+      other: "#C9B89A",
+    };
+
+    // ── Period selector ─────────────────────────────────
+    document.querySelectorAll(".period-pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".period-pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activePeriod = btn.dataset.period;
+        loadReport();
+      });
+    });
+
+    function getDateRange(period) {
+      const now   = new Date();
+      const end   = new Date(now); end.setHours(23, 59, 59, 999);
+      const start = new Date(now);
+      if      (period === "today") { start.setHours(0, 0, 0, 0); }
+      else if (period === "week")  { start.setDate(start.getDate() - 6); start.setHours(0, 0, 0, 0); }
+      else if (period === "month") { start.setDate(start.getDate() - 29); start.setHours(0, 0, 0, 0); }
+      return { start, end };
+    }
+
+    async function loadReport() {
+      const { start, end } = getDateRange(activePeriod);
+      const label = {
+        today: "Today's Summary",
+        week:  "Last 7 Days Summary",
+        month: "Last 30 Days Summary",
+      };
+      document.getElementById("periodLabel").textContent = label[activePeriod] ?? "";
+
+      try {
+        currentTxs = await fetchTransactionsByRange(start, end);
+        renderSummary();
+        renderTopProductsChart();
+        renderPaymentDonut();
+        renderTopList();
+        renderDailyChart(start);
+      } catch(e) {
+        console.error("[KSP] Reports:", e);
+        showToast("Failed to load report data", "danger");
+      }
+    }
+
+    function renderSummary() {
+      const revenue = currentTxs.reduce((s, t) => s + (t.total ?? 0), 0);
+      const count   = currentTxs.length;
+      const avg     = count ? revenue / count : 0;
+      const items   = currentTxs.reduce((s, t) => s + (t.items ?? []).length, 0);
+
+      const stats = [
+        { ico:"trending_up", bg:"rgba(29,158,117,0.12)", ic:"var(--green-400)", label:"REVENUE", value: fmtINRShort(revenue) },
+        { ico:"receipt_long",bg:"rgba(239,159,39,0.12)",  ic:"var(--gold-400)",  label:"BILLS",   value: count },
+        { ico:"equalizer",   bg:"rgba(55,138,221,0.12)",  ic:"var(--blue-400)",  label:"AVG BILL", value: fmtINRShort(avg) },
+        { ico:"inventory_2", bg:"rgba(216,90,48,0.12)",   ic:"var(--red-400)",   label:"ITEMS SOLD", value: items },
+      ];
+      document.getElementById("repSummary").innerHTML = stats.map(s => `
+        <div class="rep-stat anim-fade-up">
+          <div class="rep-stat-ico" style="background:${s.bg};">
+            <span class="material-symbols-outlined" style="color:${s.ic};">${s.ico}</span>
+          </div>
+          <div class="rep-stat-label">${s.label}</div>
+          <div class="rep-stat-value">${s.value}</div>
+        </div>`).join("");
+    }
+
+    function getTopProducts() {
+      const map = {};
+      currentTxs.forEach(t => (t.items ?? []).forEach(i => {
+        map[i.name] = (map[i.name] ?? 0) + i.qty;
+      }));
+      return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    }
+
+    function renderTopProductsChart() {
+      const top = getTopProducts();
+      const max = top[0]?.[1] ?? 1;
+      const el  = document.getElementById("topProductsChart");
+      if (!top.length) { el.innerHTML = `<div class="empty-state" style="padding:20px"><p>No sales data</p></div>`; return; }
+      el.innerHTML = top.map(([name, qty]) => `
+        <div class="bar-row">
+          <span class="bar-label" title="${name}">${name.length > 14 ? name.slice(0, 14) + "…" : name}</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${(qty / max * 100).toFixed(1)}%;"></div>
+          </div>
+          <span class="bar-val">${qty} units</span>
+        </div>`).join("");
+    }
+
+    function renderPaymentDonut() {
+      const breakdown = currentTxs.reduce((acc, t) => {
+        const m = t.paymentMethod ?? "other";
+        acc[m] = (acc[m] ?? 0) + (t.total ?? 0);
+        return acc;
+      }, {});
+      const total   = Object.values(breakdown).reduce((a, b) => a + b, 0);
+      const entries = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
+
+      // Simple segmented ring via SVG stroke-dasharray
+      const R = 44, CX = 60, CY = 60, CIRC = 2 * Math.PI * R;
+      const svg   = document.getElementById("donutSvg");
+      const legend = document.getElementById("donutLegend");
+      if (!total) {
+        svg.innerHTML = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--sand-200)" stroke-width="16"/>`;
+        legend.innerHTML = `<p style="font-size:0.82rem;color:var(--text-tertiary)">No payment data</p>`;
+        return;
+      }
+      let offset = 0;
+      svg.innerHTML = entries.map(([m, v]) => {
+        const pct  = v / total;
+        const dash = pct * CIRC;
+        const seg  = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none"
+          stroke="${COLORS[m] ?? COLORS.other}" stroke-width="16"
+          stroke-dasharray="${dash.toFixed(2)} ${CIRC.toFixed(2)}"
+          stroke-dashoffset="${(-offset).toFixed(2)}"
+          transform="rotate(-90 ${CX} ${CY})"/>`;
+        offset += dash;
+        return seg;
+      }).join("") + `<text x="${CX}" y="${CY}" text-anchor="middle" dy=".35em"
+        font-size="14" font-weight="700" fill="var(--text-primary)">${entries.length}</text>`;
+
+      legend.innerHTML = entries.map(([m, v]) => `
+        <div class="donut-row">
+          <div class="donut-dot" style="background:${COLORS[m] ?? COLORS.other};"></div>
+          <span class="donut-name">${m.toUpperCase()}</span>
+          <span class="donut-pct">${((v / total) * 100).toFixed(0)}%</span>
+        </div>`).join("");
+    }
+
+    function renderTopList() {
+      const top = getTopProducts().slice(0, 5);
+      const el  = document.getElementById("topList");
+      if (!top.length) { el.innerHTML = `<div class="empty-state" style="padding:20px"><p>No data</p></div>`; return; }
+      el.innerHTML = top.map(([name, qty], i) => `
+        <div class="top-row">
+          <div class="top-rank ${i === 0 ? 'gold' : ''}">${i + 1}</div>
+          <span class="top-name">${name}</span>
+          <span class="top-qty">${qty} sold</span>
+        </div>`).join("");
+    }
+
+    function renderDailyChart(rangeStart) {
+      // Group transactions by day
+      const byDay = {};
+      currentTxs.forEach(t => {
+        if (!t.timestamp) return;
+        const d   = t.timestamp.toDate ? t.timestamp.toDate() : new Date(t.timestamp);
+        const key = d.toLocaleDateString("en-IN", { day:"numeric", month:"short" });
+        byDay[key] = (byDay[key] ?? 0) + (t.total ?? 0);
+      });
+      const entries = Object.entries(byDay);
+      const max = Math.max(...entries.map(([, v]) => v), 1);
+      const el  = document.getElementById("dailyChart");
+      if (!entries.length) {
+        el.innerHTML = `<div class="empty-state" style="padding:20px"><p>No daily data</p></div>`;
+        return;
+      }
+      el.innerHTML = `<div class="bar-chart">${entries.slice(-10).map(([day, rev]) => `
+        <div class="bar-row">
+          <span class="bar-label">${day}</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${(rev / max * 100).toFixed(1)}%;background:var(--secondary);"></div>
+          </div>
+          <span class="bar-val">${fmtINRShort(rev)}</span>
+        </div>`).join("")}</div>`;
+    }
+
+    // ── CSV export ──────────────────────────────────────
+    window.exportReport = function() {
+      const headers = ["Bill ID", "Date", "Time", "Payment", "Status", "Subtotal", "Tax", "Total"];
+      const rows = currentTxs.map(t => [
+        t.billId ?? t.id,
+        fmtDate(t.timestamp),
+        fmtTime(t.timestamp),
+        t.paymentMethod ?? "—",
+        t.status ?? "—",
+        t.subtotal ?? 0,
+        t.tax ?? 0,
+        t.total ?? 0,
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+      const a = document.createElement("a");
+      a.href = "data:text/csv," + encodeURIComponent(csv);
+      a.download = `report-${activePeriod}-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      showToast("Report exported!", "success");
+    };
+
+    loadReport();
+  </script>
+</body>
+</html>

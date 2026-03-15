@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">\n  <title>Kerala Smart POS — Dashboard</title>
+  <link rel="stylesheet" href="styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    /* ── Dashboard layout ── */
+    .dash-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .date-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--r-full);
+      background: var(--bg-surface); border: 1px solid var(--border-default);
+      font-size: 0.825rem; color: var(--text-secondary); font-weight: 500;
+    }
+    .date-chip .material-symbols-outlined { font-size: 1rem; color: var(--primary); }
+
+    /* ── Stat cards ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-xl);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+      transition: all var(--t-med) var(--ease-spring);
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .stat-card.alert-card { border-color: var(--red-200); }
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .stat-icon .material-symbols-outlined { font-size: 1.2rem; }
+    .stat-label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; letter-spacing:0.03em; }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.9rem; color: var(--text-primary);
+      line-height: 1.1; margin-bottom: 6px;
+    }
+    .stat-trend { font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+    .stat-trend .material-symbols-outlined { font-size: 0.9rem; }
+    .trend-up   { color: var(--green-400); }
+    .trend-down { color: var(--red-400); }
+
+    /* ── Body grid ── */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+    }
+    @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    /* ── Activity feed ── */
+    .activity-card { display: flex; flex-direction: column; }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .card-header h3 { font-size: 1rem; font-weight: 700; }
+    .view-all {
+      font-size: 0.78rem; font-weight: 700; color: var(--primary);
+      background: none; border: none; cursor: pointer;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .activity-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-ico {
+      width: 36px; height: 36px; border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .activity-ico .material-symbols-outlined { font-size: 1rem; }
+    .activity-info { flex: 1; min-width: 0; }
+    .activity-title { font-size: 0.875rem; font-weight: 600; }
+    .activity-desc  { font-size: 0.77rem; color: var(--text-secondary); }
+    .activity-right { text-align: right; flex-shrink: 0; }
+    .activity-amount { font-size: 0.9rem; font-weight: 700; font-family: var(--font-mono); }
+    .activity-time   { font-size: 0.72rem; color: var(--text-tertiary); }
+
+    /* ── Payment mix ── */
+    .mix-bar {
+      height: 8px; border-radius: 4px;
+      overflow: hidden; display: flex; gap: 2px; margin: 8px 0 6px;
+    }
+    .mix-seg { height: 100%; border-radius: 4px; transition: flex 0.5s var(--ease); }
+    .mix-labels { display: flex; gap: 12px; flex-wrap: wrap; }
+    .mix-dot {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.77rem; color: var(--text-secondary);
+    }
+    .mix-dot::before {
+      content:''; width:8px; height:8px; border-radius:50%;
+      background: var(--dot-color);
+    }
+
+    /* ── Quick actions ── */
+    .quick-actions { display: flex; flex-direction: column; gap: 12px; }
+    .qa-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px; border-radius: var(--r-xl);
+      border: none; cursor: pointer; text-align: left; width: 100%;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .qa-btn.primary-qa { background: var(--primary); box-shadow: var(--shadow-gold); }
+    .qa-btn.primary-qa:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    .qa-btn.secondary-qa {
+      background: var(--bg-surface); border: 1.5px dashed var(--border-default);
+    }
+    .qa-btn.secondary-qa:hover { border-color: var(--secondary); background: var(--secondary-light); }
+    .qa-icon {
+      width: 40px; height: 40px; border-radius: var(--r-md);
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .qa-icon .material-symbols-outlined { font-size: 1.3rem; }
+    .qa-btn.primary-qa .qa-icon { color: var(--gold-900); }
+    .qa-btn.secondary-qa .qa-icon { background: var(--green-50); color: var(--green-600); }
+    .qa-title { font-size: 0.95rem; font-weight: 700; display: block; }
+    .qa-desc  { font-size: 0.78rem; opacity: 0.75; }
+    .qa-btn.primary-qa .qa-title,
+    .qa-btn.primary-qa .qa-desc { color: var(--gold-900); }
+    .qa-btn.secondary-qa .qa-title { color: var(--text-primary); }
+    .qa-btn.secondary-qa .qa-desc  { color: var(--text-secondary); }
+
+    /* ── Low stock alerts ── */
+    .alert-list { display: flex; flex-direction: column; gap: 8px; }
+    .alert-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; border-radius: var(--r-md);
+      background: var(--red-50); border: 1px solid var(--red-200);
+    }
+    .alert-name { font-size: 0.85rem; font-weight: 600; color: var(--red-600); }
+    .alert-qty  { font-size: 0.78rem; font-family: var(--font-mono); color: var(--red-400); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header id="navbar"></header>
+  <aside id="sidebar"></aside>
+
+  <main class="main-content">
+    <!-- Header -->
+    <div class="dash-header anim-fade-up">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Here's what's happening in your store today.</p>
+      </div>
+      <div class="date-chip">
+        <span class="material-symbols-outlined">calendar_today</span>
+        <span id="dateText">—</span>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-row" id="statsRow">
+      <!-- skeleton -->
+      <div class="stat-card anim-fade-up d1"><div class="skeleton" style="height:140px;border-radius:var(--r-lg)"></div></div>
+      <div class="stat-card anim-fade-up d2"><div class="skeleton" style="height:140px;border-radius:var(--r-lg)"></div></div>
+      <div class="stat-card anim-fade-up d3"><div class="skeleton" style="height:140px;border-radius:var(--r-lg)"></div></div>
+      <div class="stat-card anim-fade-up d4"><div class="skeleton" style="height:140px;border-radius:var(--r-lg)"></div></div>
+    </div>
+
+    <!-- Body Grid -->
+    <div class="dash-grid">
+
+      <!-- Left column -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- Recent Activity -->
+        <div class="card activity-card anim-fade-up d2">
+          <div class="card-header">
+            <h3>Recent Activity</h3>
+            <button class="view-all" onclick="location.href='ledger.html'">View All →</button>
+          </div>
+          <div id="activityList">
+            <div class="skeleton" style="height:52px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:52px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:52px;"></div>
+          </div>
+
+          <!-- Payment mix -->
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-subtle);">
+            <div class="section-label">Today's Payment Mix</div>
+            <div class="mix-bar" id="mixBar"></div>
+            <div class="mix-labels" id="mixLabels"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Quick Actions -->
+        <div class="card anim-fade-up d3">
+          <div class="card-header"><h3>Quick Actions</h3></div>
+          <div class="quick-actions">
+            <button class="qa-btn primary-qa" onclick="location.href='pos.html'">
+              <div class="qa-icon"><span class="material-symbols-outlined">add_circle</span></div>
+              <div>
+                <span class="qa-title">New Bill</span>
+                <span class="qa-desc">Create invoice for customer</span>
+              </div>
+            </button>
+            <button class="qa-btn secondary-qa" onclick="location.href='add-product.html'">
+              <div class="qa-icon"><span class="material-symbols-outlined">add_box</span></div>
+              <div>
+                <span class="qa-title">Add Stock</span>
+                <span class="qa-desc">Update inventory counts</span>
+              </div>
+            </button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+            <button class="btn btn-ghost btn-sm" onclick="location.href='customers.html'" style="justify-content:center;">
+              <span class="material-symbols-outlined">group</span> Customers
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="location.href='reports.html'" style="justify-content:center;">
+              <span class="material-symbols-outlined">bar_chart</span> Reports
+            </button>
+          </div>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="card anim-fade-up d4">
+          <div class="card-header">
+            <h3>Low Stock Alerts</h3>
+            <button class="view-all" onclick="location.href='inventory.html'">Manage →</button>
+          </div>
+          <div class="alert-list" id="alertList">
+            <div class="skeleton" style="height:38px;margin-bottom:6px;"></div>
+            <div class="skeleton" style="height:38px;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { getTodaySummary, getLowStockProducts } from "./js/services/dashboardService.js";
+    import { subscribeTransactions }                from "./js/services/transactionService.js";
+    import { waitForAuth }                          from "./js/firebase.js";
+    import "./js/navigation.js";
+
+    // ── Wait for auth before any Firestore access ───────────────
+    let currentUser;
+    try {
+      currentUser = await waitForAuth();
+      console.log("[KSP] Dashboard auth ready, uid:", currentUser.uid);
+    } catch { /* redirected to login */ }
+
+    // ── Date ────────────────────────────────────────────────────
+    const dateEl = document.getElementById("dateText");
+    if (dateEl) {
+      dateEl.textContent = new Date().toLocaleDateString("en-IN", {
+        weekday:"short", day:"numeric", month:"short", year:"numeric"
+      });
+    }
+
+    if (!currentUser) { /* stop here — redirect in progress */ }
+    else {
+
+    // ── Load summary stats ───────────────────────────────────────
+    async function loadStats() {
+      try {
+        const s = await getTodaySummary();
+        console.log("[KSP] Dashboard stats loaded:", s);
+        renderStats(s);
+        renderPaymentMix(s.paymentBreakdown);
+      } catch(e) {
+        console.error("[KSP] Dashboard stats:", e);
+        document.getElementById("statsRow").innerHTML = `
+          <div style="grid-column:1/-1;color:var(--text-secondary);font-size:0.875rem;padding:20px 0;">
+            Could not load stats. Check Firestore connection.
+          </div>`;
+      }
+    }
+
+    function renderStats({ totalRevenue, billCount, avgBill }) {
+      const stats = [
+        {
+          icon:"payments", iconBg:"rgba(239,159,39,0.12)", iconColor:"var(--gold-400)",
+          label:"Today's Revenue", value: fmtINRShort(totalRevenue),
+          trend:`${billCount} bills generated`, trendClass:""
+        },
+        {
+          icon:"receipt_long", iconBg:"rgba(29,158,117,0.12)", iconColor:"var(--green-400)",
+          label:"Bills Issued", value: billCount,
+          trend:"Today's transactions", trendClass:""
+        },
+        {
+          icon:"trending_up", iconBg:"rgba(55,138,221,0.12)", iconColor:"var(--blue-400)",
+          label:"Avg. Bill Value", value: fmtINRShort(avgBill),
+          trend:"Per transaction today", trendClass:""
+        },
+      ];
+
+      const low = window._lowStock ?? 0;
+      stats.push({
+        icon:"warning", iconBg:"rgba(216,90,48,0.12)", iconColor:"var(--red-400)",
+        label:"Low Stock Items", value: low,
+        trend:'<a href="inventory.html" style="color:var(--red-400);font-weight:700;">View Details →</a>',
+        trendClass:"alert-card", raw:true
+      });
+
+      document.getElementById("statsRow").innerHTML = stats.map((s,i) => `
+        <div class="stat-card ${s.trendClass ?? ''} anim-fade-up d${i+1}">
+          <div class="stat-icon" style="background:${s.iconBg};color:${s.iconColor};">
+            <span class="material-symbols-outlined">${s.icon}</span>
+          </div>
+          <p class="stat-label">${s.label}</p>
+          <p class="stat-value">${s.value}</p>
+          <p class="stat-trend">${s.raw ? s.trend : `<span class="material-symbols-outlined">schedule</span>${s.trend}`}</p>
+        </div>
+      `).join("");
+    }
+
+    function renderPaymentMix(breakdown) {
+      const bar    = document.getElementById("mixBar");
+      const labels = document.getElementById("mixLabels");
+      if (!bar) return;
+      const total = Object.values(breakdown).reduce((a,b)=>a+b,0);
+      if (total === 0) { bar.innerHTML = `<div class="mix-seg" style="flex:1;background:var(--sand-200);"></div>`; return; }
+      const colors = { cash:"#1D9E75", upi:"#378ADD", card:"#D85A30", other:"#C9B89A" };
+      const entries = Object.entries(breakdown).sort((a,b)=>b[1]-a[1]);
+      bar.innerHTML = entries.map(([m,v])=>
+        `<div class="mix-seg" style="flex:${v};background:${colors[m]??colors.other};" title="${m}: ${fmtINR(v)}"></div>`
+      ).join("");
+      labels.innerHTML = entries.map(([m,v])=>`
+        <div class="mix-dot" style="--dot-color:${colors[m]??colors.other}">
+          ${m.toUpperCase()} ${((v/total)*100).toFixed(0)}%
+        </div>`).join("");
+    }
+
+    // ── Real-time activity feed ──────────────────────────────────
+    subscribeTransactions((txs) => {
+      const el = document.getElementById("activityList");
+      if (!el) return;
+      console.log("[KSP] Dashboard transactions:", txs.length);
+      if (txs.length === 0) {
+        el.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><p>No transactions yet.</p></div>`;
+        return;
+      }
+      const methodIcon  = { cash:"payments", upi:"qr_code", card:"credit_card" };
+      const methodColor = { cash:"rgba(29,158,117,0.12)", upi:"rgba(55,138,221,0.12)", card:"rgba(216,90,48,0.12)" };
+      const textColor   = { cash:"var(--green-400)", upi:"var(--blue-400)", card:"var(--red-400)" };
+      el.innerHTML = txs.slice(0,8).map(t => `
+        <div class="activity-item anim-slide">
+          <div class="activity-ico" style="background:${methodColor[t.paymentMethod]??'var(--sand-200)'}">
+            <span class="material-symbols-outlined" style="color:${textColor[t.paymentMethod]??'var(--text-secondary)'}">
+              ${methodIcon[t.paymentMethod] ?? 'receipt_long'}
+            </span>
+          </div>
+          <div class="activity-info">
+            <div class="activity-title">${t.billId ?? t.id.slice(0,10).toUpperCase()}</div>
+            <div class="activity-desc">${t.paymentMethod?.toUpperCase() ?? '—'} · ${relativeTime(t.timestamp)}</div>
+          </div>
+          <div class="activity-right">
+            <div class="activity-amount">${fmtINR(t.total)}</div>
+            <div class="activity-time">${fmtTime(t.timestamp)}</div>
+          </div>
+        </div>`).join("");
+    }, 20);
+
+    // ── Low stock alerts ─────────────────────────────────────────
+    async function loadAlerts() {
+      const items = await getLowStockProducts(5);
+      window._lowStock = items.length;
+      const el = document.getElementById("alertList");
+      if (!el) return;
+      if (items.length === 0) {
+        el.innerHTML = `<div style="color:var(--green-400);font-size:0.85rem;display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:1rem;">check_circle</span> All stock levels are OK
+        </div>`;
+        return;
+      }
+      el.innerHTML = items.map(p => `
+        <div class="alert-row">
+          <span class="alert-name">${p.name}</span>
+          <span class="alert-qty">${p.stock} left</span>
+        </div>`).join("");
+    }
+
+    loadStats();
+    loadAlerts();
+
+    } // end if (currentUser)
+  </script>
+</body>
+</html>

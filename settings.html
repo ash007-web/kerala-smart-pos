@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">\n  <title>Kerala Smart POS — Settings</title>
+  <link rel="stylesheet" href="styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      max-width: 900px;
+    }
+    @media(max-width:900px) { .settings-grid { grid-template-columns: 1fr; } }
+
+    /* Nav tabs */
+    .settings-nav { display: flex; flex-direction: column; gap: 4px; }
+    .settings-tab {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--r-md);
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer;
+      background: transparent; border: none; text-align: left;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .settings-tab .material-symbols-outlined { font-size: 1.1rem; }
+    .settings-tab:hover { background: var(--bg-surface); color: var(--text-primary); }
+    .settings-tab.active { background: var(--primary); color: var(--text-on-gold); box-shadow: var(--shadow-gold); }
+
+    /* Sections */
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+    .section-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--r-xl); padding: 24px; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+    .section-heading { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .section-sub { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 20px; }
+
+    /* Profile card */
+    .profile-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--gold-100));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 1.5rem; font-weight: 700;
+      color: var(--gold-900); flex-shrink: 0;
+      border: 3px solid var(--gold-100);
+    }
+    .profile-info-name { font-size: 1.1rem; font-weight: 700; }
+    .profile-info-email { font-size: 0.82rem; color: var(--text-secondary); }
+    .profile-info-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--green-50); color: var(--green-600);
+      font-size: 0.7rem; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--r-full);
+      margin-top: 4px;
+    }
+    .profile-info-badge .material-symbols-outlined { font-size: 0.85rem; }
+
+    /* Form fields */
+    .field-row { display: grid; grid-template-columns: 160px 1fr; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+    .field-row:last-child { border: none; }
+    .field-label { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); }
+    .field-hint { font-size: 0.72rem; color: var(--text-tertiary); margin-top: 2px; }
+
+    /* Toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .toggle {
+      position: relative; width: 42px; height: 24px;
+      background: var(--sand-200); border-radius: 12px;
+      cursor: pointer; transition: background var(--t-fast) var(--ease);
+    }
+    .toggle.on { background: var(--secondary); }
+    .toggle::after {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: white; top: 3px; left: 3px;
+      transition: transform var(--t-fast) var(--ease);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .toggle.on::after { transform: translateX(18px); }
+    .toggle-label { font-size: 0.85rem; font-weight: 600; }
+
+    /* Danger zone */
+    .danger-zone { background: var(--red-50); border: 1px solid var(--red-200); border-radius: var(--r-xl); padding: 20px 24px; }
+    .danger-zone h3 { font-size: 0.95rem; font-weight: 700; color: var(--red-600); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .danger-zone p { font-size: 0.82rem; color: var(--red-400); margin-bottom: 16px; }
+
+    /* Seed data box */
+    .seed-box { background: var(--gold-50); border: 1px solid var(--gold-100); border-radius: var(--r-xl); padding: 20px 24px; margin-bottom: 16px; }
+    .seed-box h3 { font-size: 0.95rem; font-weight: 700; color: var(--gold-600); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .seed-box p { font-size: 0.82rem; color: var(--gold-600); margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+  <header id="navbar"></header>
+  <aside id="sidebar"></aside>
+
+  <main class="main-content">
+    <div style="margin-bottom:28px;" class="anim-fade-up">
+      <h1 class="page-title">Settings</h1>
+      <p class="page-subtitle">Manage your store configuration and account.</p>
+    </div>
+
+    <div class="settings-grid">
+
+      <!-- Left Nav -->
+      <div>
+        <div class="settings-nav card" style="padding:12px;">
+          <button class="settings-tab active" data-tab="profile" onclick="switchTab('profile')">
+            <span class="material-symbols-outlined">person</span> Profile & Store
+          </button>
+          <button class="settings-tab" data-tab="preferences" onclick="switchTab('preferences')">
+            <span class="material-symbols-outlined">tune</span> Preferences
+          </button>
+          <button class="settings-tab" data-tab="data" onclick="switchTab('data')">
+            <span class="material-symbols-outlined">cloud_sync</span> Data & Backup
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Content -->
+      <div>
+
+        <!-- ── Profile & Store ── -->
+        <div class="settings-section active" id="tab-profile">
+          <div class="section-card">
+            <div class="section-heading">Account</div>
+            <div class="section-sub">Your Firebase auth profile information.</div>
+
+            <div class="profile-row">
+              <div class="profile-avatar" id="avatarEl">KS</div>
+              <div>
+                <div class="profile-info-name" id="profileName">—</div>
+                <div class="profile-info-email" id="profileEmail">—</div>
+                <div class="profile-info-badge">
+                  <span class="material-symbols-outlined">verified</span> Authenticated
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div>
+                <div class="field-label">Display Name</div>
+                <div class="field-hint">Shown in system header</div>
+              </div>
+              <input type="text" class="input" id="displayNameInput" placeholder="Your name">
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">Store Details</div>
+            <div class="section-sub">Saved locally on this device.</div>
+
+            <div class="field-row">
+              <div>
+                <div class="field-label">Store Name</div>
+                <div class="field-hint">Appears in reports</div>
+              </div>
+              <input type="text" class="input" id="storeNameInput" placeholder="e.g. My Kirana Store">
+            </div>
+            <div class="field-row">
+              <div>
+                <div class="field-label">Store Address</div>
+                <div class="field-hint">For bill footer</div>
+              </div>
+              <input type="text" class="input" id="storeAddressInput" placeholder="Street, City">
+            </div>
+            <div class="field-row">
+              <div>
+                <div class="field-label">Tax Rate</div>
+                <div class="field-hint">Applied on all bills (GST)</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" class="input" id="taxRateInput" style="width:100px;" min="0" max="100" step="0.5" value="18">
+                <span style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);">%</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+              <button class="btn btn-primary" onclick="saveStoreSettings()">
+                <span class="material-symbols-outlined">save</span> Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Preferences ── -->
+        <div class="settings-section" id="tab-preferences">
+          <div class="section-card">
+            <div class="section-heading">Display</div>
+            <div class="section-sub">Appearance and UI preferences.</div>
+
+            <div class="field-row">
+              <div>
+                <div class="field-label">Dark Mode</div>
+                <div class="field-hint">Toggle dark theme</div>
+              </div>
+              <div class="toggle-wrap">
+                <div class="toggle" id="darkToggle" onclick="toggleDarkModeSettings()"></div>
+                <span class="toggle-label" id="darkToggleLabel">Off</span>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div>
+                <div class="field-label">Currency</div>
+                <div class="field-hint">Display currency</div>
+              </div>
+              <select class="input" style="height:42px;padding:0 14px;" disabled>
+                <option>₹ Indian Rupee (INR)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Data & Backup ── -->
+        <div class="settings-section" id="tab-data">
+          <div class="seed-box">
+            <h3><span class="material-symbols-outlined">science</span> Seed Demo Data</h3>
+            <p>Populate your Firestore with 12 sample products and 6 sample customers. Only run this once on a fresh account.</p>
+            <button class="btn btn-primary btn-sm" id="seedBtn" onclick="handleSeed()">
+              <span class="material-symbols-outlined">cloud_upload</span> Seed Demo Data
+            </button>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">Firestore Info</div>
+            <div class="section-sub">Your data details.</div>
+
+            <div class="field-row">
+              <div class="field-label">Project ID</div>
+              <code style="font-size:0.82rem;color:var(--text-secondary);">kerala-smart-pos</code>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Shop Scope</div>
+              <code id="shopScopeEl" style="font-size:0.82rem;color:var(--text-secondary);">Loading…</code>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Auth Status</div>
+              <span class="badge badge-success">Authenticated</span>
+            </div>
+          </div>
+
+          <div class="danger-zone">
+            <h3><span class="material-symbols-outlined">warning</span> Danger Zone</h3>
+            <p>Signing out will require you to log in again. Your data remains safe in Firestore.</p>
+            <button class="btn btn-danger" onclick="handleLogout()">
+              <span class="material-symbols-outlined">logout</span> Sign Out
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { getCurrentUser, onAuthChange } from "./js/services/authService.js";
+    import { seedDemoData } from "./js/services/dashboardService.js";
+    import "./js/navigation.js";
+
+    // ── Tab navigation ──────────────────────────────────
+    window.switchTab = function(tab) {
+      document.querySelectorAll(".settings-section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".settings-tab").forEach(b => b.classList.remove("active"));
+      document.getElementById("tab-" + tab)?.classList.add("active");
+      document.querySelector(`[data-tab="${tab}"]`)?.classList.add("active");
+    };
+
+    // ── Load user info via onAuthChange (not setTimeout) ─
+    // FIX: Using onAuthChange instead of setTimeout(800ms) race condition.
+    // onAuthChange fires exactly when Firebase auth state is ready.
+    onAuthChange((user) => {
+      if (!user) return; // guard redirected by navigation.js
+      const name     = user.displayName || user.email?.split("@")[0] || "User";
+      const initials = name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+      document.getElementById("avatarEl").textContent    = initials;
+      document.getElementById("profileName").textContent  = user.displayName || "—";
+      document.getElementById("profileEmail").textContent = user.email || "—";
+      document.getElementById("displayNameInput").value   = user.displayName || "";
+      document.getElementById("shopScopeEl").textContent  = `/shops/${user.uid}`;
+    });
+
+    // ── Load stored settings ────────────────────────────
+    document.getElementById("storeNameInput").value    = localStorage.getItem("ksp-store-name")    || "";
+    document.getElementById("storeAddressInput").value = localStorage.getItem("ksp-store-address") || "";
+    document.getElementById("taxRateInput").value      = localStorage.getItem("ksp-tax-rate")      || "18";
+
+    // Dark mode toggle state
+    const darkToggle = document.getElementById("darkToggle");
+    const darkLabel  = document.getElementById("darkToggleLabel");
+    function syncDarkToggle() {
+      const isDark = document.body.classList.contains("dark");
+      darkToggle.classList.toggle("on", isDark);
+      darkLabel.textContent = isDark ? "On" : "Off";
+    }
+    syncDarkToggle();
+
+    // FIX: Use window.toggleDarkMode?.() for defensive call in case navigation loads late
+    window.toggleDarkModeSettings = function() {
+      window.toggleDarkMode?.();
+      syncDarkToggle();
+    };
+
+    // ── Save store settings ─────────────────────────────
+    window.saveStoreSettings = function() {
+      localStorage.setItem("ksp-store-name",    document.getElementById("storeNameInput").value.trim());
+      localStorage.setItem("ksp-store-address", document.getElementById("storeAddressInput").value.trim());
+      localStorage.setItem("ksp-tax-rate",      document.getElementById("taxRateInput").value);
+      showToast("Settings saved!", "success");
+    };
+
+    // ── Seed demo data ──────────────────────────────────
+    window.handleSeed = async function() {
+      if (!confirm("This will add 12 products and 6 customers to Firestore. Continue?")) return;
+      const btn = document.getElementById("seedBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="material-symbols-outlined" style="animation:spin 0.8s linear infinite">progress_activity</span> Seeding…`;
+      try {
+        await seedDemoData();
+        showToast("Demo data seeded! Check Inventory and Customers.", "success");
+      } catch(e) {
+        showToast("Seed failed: " + e.message, "danger");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined">cloud_upload</span> Seed Demo Data`;
+      }
+    };
+
+  </script>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+</body>
+</html>

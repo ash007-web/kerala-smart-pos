@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">\n  <title>Kerala Smart POS — Add Customer</title>
+  <meta name="description" content="Register a new customer in the Kerala Smart POS system.">
+  <link rel="stylesheet" href="styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    .form-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-2xl);
+      padding: 32px 36px;
+      box-shadow: var(--shadow-md);
+      max-width: 600px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 20px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 0.78rem; font-weight: 700;
+      color: var(--text-secondary); letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .form-group .input-hint {
+      font-size: 0.72rem; color: var(--text-tertiary); margin-top: 2px;
+    }
+    .form-actions {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding-top: 24px; margin-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    /* Phone validation indicator */
+    input:valid:not(:placeholder-shown) { border-color: var(--success); }
+    input:invalid:not(:placeholder-shown) { border-color: var(--danger); }
+    /* Avatar preview */
+    .avatar-preview {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 1.5rem; font-weight: 700;
+      color: var(--gold-900); border: 3px solid var(--gold-100);
+      margin-bottom: 4px;
+      transition: all var(--t-med) var(--ease-spring);
+    }
+    /* Success overlay */
+    .success-overlay {
+      display: none; position: fixed; inset: 0;
+      background: var(--bg-overlay);
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    .success-overlay.show { display: flex; }
+    .success-box {
+      background: var(--bg-surface); border-radius: var(--r-2xl);
+      padding: 40px; text-align: center; box-shadow: var(--shadow-lg);
+      animation: fadeUp 0.3s var(--ease-out) both;
+    }
+    .success-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--success-light); display: flex;
+      align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .success-icon .material-symbols-outlined { font-size: 2rem; color: var(--success); }
+    @media(max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header id="navbar"></header>
+  <aside id="sidebar"></aside>
+
+  <main class="main-content">
+    <!-- Page header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;" class="anim-fade-up">
+      <a href="customers.html" class="btn btn-ghost btn-sm">
+        <span class="material-symbols-outlined">arrow_back</span> Customers
+      </a>
+      <div>
+        <h1 class="page-title">Add Customer</h1>
+        <p class="page-subtitle">Register a new customer in the system</p>
+      </div>
+    </div>
+
+    <!-- Form card -->
+    <div class="form-card anim-fade-up d1">
+      <!-- Live avatar preview -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border-subtle);">
+        <div class="avatar-preview" id="avatarPreview">?</div>
+        <div>
+          <div style="font-weight:700;font-size:1rem;" id="namePreview">New Customer</div>
+          <div style="font-size:0.82rem;color:var(--text-secondary);" id="phonePreview">Phone not set</div>
+        </div>
+      </div>
+
+      <form id="addCustForm">
+        <div class="form-grid">
+          <!-- Full Name -->
+          <div class="form-group full">
+            <label for="cName">Full Name *</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">person</span>
+              <input type="text" id="cName" class="input" placeholder="Customer's full name" required autofocus
+                oninput="updatePreview()">
+            </div>
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label for="cPhone">Phone Number *</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">phone</span>
+              <input type="tel" id="cPhone" class="input" placeholder="10-digit mobile" required
+                pattern="[0-9]{10}" maxlength="10" oninput="updatePreview()">
+            </div>
+            <span class="input-hint">10-digit mobile number</span>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="cEmail">Email (optional)</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">mail</span>
+              <input type="email" id="cEmail" class="input" placeholder="email@example.com">
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="form-group full">
+            <label for="cAddress">Address (optional)</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">location_on</span>
+              <input type="text" id="cAddress" class="input" placeholder="Area, City">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="customers.html" class="btn btn-ghost">Cancel</a>
+          <button type="button" class="btn btn-ghost" onclick="resetForm()">
+            <span class="material-symbols-outlined">restart_alt</span> Reset
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">
+            <span class="material-symbols-outlined">person_add</span> Add Customer
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Success overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+      <div class="success-icon"><span class="material-symbols-outlined">check_circle</span></div>
+      <h2 style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:8px;">Customer Added!</h2>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;" id="successMsg">Customer saved successfully.</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn btn-ghost" onclick="closeSuccess()">Add Another</button>
+        <a href="customers.html" class="btn btn-primary">View Customers</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/pages/add-customer.js"></script>
+  <script type="module" src="./js/navigation.js"></script>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+</body>
+</html>

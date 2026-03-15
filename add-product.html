@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">\n  <title>Kerala Smart POS — Add Product</title>
+  <meta name="description" content="Add a new product to the Kerala Smart POS inventory.">
+  <link rel="stylesheet" href="styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    .form-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-2xl);
+      padding: 32px 36px;
+      box-shadow: var(--shadow-md);
+      max-width: 600px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 20px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 0.78rem; font-weight: 700;
+      color: var(--text-secondary); letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .form-group .input-hint {
+      font-size: 0.72rem; color: var(--text-tertiary); margin-top: 2px;
+    }
+    select.input { padding: 0 14px; cursor: pointer; }
+    .form-actions {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding-top: 24px; margin-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .category-preview {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+    }
+    .cat-chip {
+      padding: 4px 12px; border-radius: var(--r-full);
+      border: 1.5px solid var(--border-default);
+      font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; background: var(--bg-surface);
+      color: var(--text-secondary);
+      transition: all var(--t-fast) var(--ease);
+    }
+    .cat-chip.active { background: var(--primary); border-color: var(--primary); color: var(--text-on-gold); }
+    .success-overlay {
+      display: none; position: fixed; inset: 0;
+      background: var(--bg-overlay);
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    .success-overlay.show { display: flex; }
+    .success-box {
+      background: var(--bg-surface); border-radius: var(--r-2xl);
+      padding: 40px; text-align: center; box-shadow: var(--shadow-lg);
+      animation: fadeUp 0.3s var(--ease-out) both;
+    }
+    .success-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--success-light); display: flex;
+      align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .success-icon .material-symbols-outlined { font-size: 2rem; color: var(--success); }
+    @media(max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header id="navbar"></header>
+  <aside id="sidebar"></aside>
+
+  <main class="main-content">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;" class="anim-fade-up">
+      <a href="inventory.html" class="btn btn-ghost btn-sm">
+        <span class="material-symbols-outlined">arrow_back</span> Inventory
+      </a>
+      <div>
+        <h1 class="page-title">Add Product</h1>
+        <p class="page-subtitle">Add a new product to your inventory</p>
+      </div>
+    </div>
+
+    <div class="form-card anim-fade-up d1">
+      <form id="addProductForm">
+        <div class="form-grid">
+
+          <!-- Name -->
+          <div class="form-group full">
+            <label for="pName">Product Name *</label>
+            <input type="text" id="pName" class="input" placeholder="e.g. Tata Salt (1kg)" required autofocus>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group full">
+            <label>Category *</label>
+            <div class="category-preview" id="catChips">
+              <button type="button" class="cat-chip active" data-cat="staples">🌾 Staples</button>
+              <button type="button" class="cat-chip" data-cat="dairy">🥛 Dairy</button>
+              <button type="button" class="cat-chip" data-cat="snacks">🍪 Snacks</button>
+              <button type="button" class="cat-chip" data-cat="beverages">☕ Beverages</button>
+              <button type="button" class="cat-chip" data-cat="toiletries">🧴 Toiletries</button>
+              <button type="button" class="cat-chip" data-cat="household">🏠 Household</button>
+              <button type="button" class="cat-chip" data-cat="other">📦 Other</button>
+            </div>
+            <input type="hidden" id="pCategory" value="staples">
+          </div>
+
+          <!-- Price -->
+          <div class="form-group">
+            <label for="pPrice">Selling Price (₹) *</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">currency_rupee</span>
+              <input type="number" id="pPrice" class="input" placeholder="0.00" min="0" step="0.01" required>
+            </div>
+          </div>
+
+          <!-- Stock -->
+          <div class="form-group">
+            <label for="pStock">Opening Stock *</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">inventory_2</span>
+              <input type="number" id="pStock" class="input" placeholder="0" min="0" step="1" value="0" required>
+            </div>
+            <span class="input-hint">Units currently in stock</span>
+          </div>
+
+          <!-- Barcode -->
+          <div class="form-group full">
+            <label for="pBarcode">Barcode / SKU (optional)</label>
+            <div class="input-wrap">
+              <span class="material-symbols-outlined">qr_code</span>
+              <input type="text" id="pBarcode" class="input" placeholder="Scan or type barcode">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="inventory.html" class="btn btn-ghost">Cancel</a>
+          <button type="button" class="btn btn-ghost" onclick="resetForm()">
+            <span class="material-symbols-outlined">restart_alt</span> Reset
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">
+            <span class="material-symbols-outlined">save</span> Save Product
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Success overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+      <div class="success-icon"><span class="material-symbols-outlined">check_circle</span></div>
+      <h2 style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:8px;">Product Added!</h2>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;" id="successMsg">Product saved to Firestore.</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn btn-ghost" onclick="closeSuccess()">Add Another</button>
+        <a href="inventory.html" class="btn btn-primary">View Inventory</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/pages/add-product.js"></script>
+  <script type="module" src="./js/navigation.js"></script>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+</body>
+</html>

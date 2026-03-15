@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kerala Smart POS — Inventory</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <style>
+    .inv-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .inv-controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+    /* ── Category tabs ── */
+    .cat-tabs { display:flex; gap:0; border-bottom:1.5px solid var(--border-default); margin-bottom:20px; overflow-x:auto; }
+    .cat-tab {
+      display:flex; align-items:center; gap:6px;
+      padding:10px 16px; border:none; background:transparent;
+      font-size:0.85rem; font-weight:600; color:var(--text-secondary);
+      border-bottom:2px solid transparent; margin-bottom:-1.5px;
+      cursor:pointer; white-space:nowrap;
+      transition:all var(--t-fast) var(--ease);
+    }
+    .cat-tab .material-symbols-outlined { font-size:1rem; }
+    .cat-tab:hover { color:var(--text-primary); }
+    .cat-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+    /* ── Action buttons in rows ── */
+    .row-actions { display:flex; gap:4px; justify-content:flex-end; opacity:0; transition:opacity var(--t-fast) var(--ease); }
+    .ksp-table tbody tr:hover .row-actions { opacity:1; }
+    .action-btn {
+      width:30px; height:30px; border-radius:var(--r-md);
+      background:transparent; border:none;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--text-tertiary); cursor:pointer;
+      transition:all var(--t-fast) var(--ease);
+    }
+    .action-btn:hover.stock { background:var(--green-50);  color:var(--green-400); }
+    .action-btn:hover.edit  { background:var(--gold-50);   color:var(--gold-400);  }
+    .action-btn:hover.del   { background:var(--red-50);    color:var(--red-400);   }
+    .action-btn .material-symbols-outlined { font-size:1rem; }
+
+    /* ── Edit modal ── */
+    .modal-overlay {
+      position:fixed; inset:0; background:var(--bg-overlay);
+      backdrop-filter:blur(6px);
+      display:flex; align-items:center; justify-content:center;
+      z-index:500; opacity:0; pointer-events:none;
+      transition:opacity var(--t-med) var(--ease);
+    }
+    .modal-overlay.show { opacity:1; pointer-events:all; }
+    .modal-box {
+      background:var(--bg-surface); border-radius:var(--r-2xl);
+      width:440px; max-width:90vw;
+      box-shadow:var(--shadow-lg);
+      transform:scale(0.9) translateY(16px);
+      transition:transform var(--t-med) var(--ease-spring);
+      overflow:hidden;
+    }
+    .modal-overlay.show .modal-box { transform:scale(1) translateY(0); }
+    .modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px 16px;
+      border-bottom:1px solid var(--border-subtle);
+    }
+    .modal-header h3 { font-size:1rem; font-weight:700; display:flex; align-items:center; gap:8px; }
+    .modal-header h3 .material-symbols-outlined { color:var(--primary); }
+    .modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
+    .form-group label { display:block; font-size:0.78rem; font-weight:700; color:var(--text-secondary); margin-bottom:6px; letter-spacing:0.04em; }
+    .form-group select {
+      width:100%; height:42px; padding:0 14px;
+      background:var(--bg-surface); border:1px solid var(--border-default);
+      border-radius:var(--r-lg); font-size:0.9rem; color:var(--text-primary);
+    }
+    .form-group select:focus { outline:none; border-color:var(--primary); box-shadow:var(--shadow-focus); }
+    .modal-footer { padding:12px 24px 20px; display:flex; gap:10px; justify-content:flex-end; }
+
+    /* ── Item name cell ── */
+    .item-cell { display:flex; align-items:center; gap:10px; }
+    .item-emoji { font-size:1.2rem; width:32px; text-align:center; flex-shrink:0; }
+    .item-info-name { font-size:0.875rem; font-weight:600; }
+    .item-info-cat  { font-size:0.75rem; color:var(--text-tertiary); }
+
+    /* ── Stat strip ── */
+    .inv-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
+    .inv-stat {
+      background:var(--bg-surface); border:1px solid var(--border-subtle);
+      border-radius:var(--r-lg); padding:14px 16px;
+    }
+    .inv-stat-label { font-size:0.72rem; font-weight:600; color:var(--text-secondary); letter-spacing:0.04em; margin-bottom:4px; }
+    .inv-stat-value { font-family:var(--font-display); font-size:1.5rem; color:var(--text-primary); }
+  </style>
+</head>
+<body>
+  <header id="navbar"></header>
+  <aside id="sidebar"></aside>
+
+  <main class="main-content">
+    <div class="inv-header anim-fade-up">
+      <div>
+        <h1 class="page-title">Inventory</h1>
+        <p class="page-subtitle">Real-time stock from Firestore</p>
+      </div>
+      <div class="inv-controls">
+        <div class="input-wrap" style="width:240px;">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" class="input" id="invSearch" placeholder="Search items…">
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <span class="material-symbols-outlined">add</span> Add Product
+        </button>
+      </div>
+    </div>
+
+    <!-- Stat strip -->
+    <div class="inv-stats anim-fade-up d1" id="invStats">
+      <div class="inv-stat"><div class="inv-stat-label">TOTAL PRODUCTS</div><div class="inv-stat-value skeleton" style="height:28px;width:60px;border-radius:6px;"></div></div>
+      <div class="inv-stat"><div class="inv-stat-label">LOW STOCK</div><div class="inv-stat-value skeleton" style="height:28px;width:40px;border-radius:6px;"></div></div>
+      <div class="inv-stat"><div class="inv-stat-label">OUT OF STOCK</div><div class="inv-stat-value skeleton" style="height:28px;width:40px;border-radius:6px;"></div></div>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="cat-tabs" id="catTabs">
+      <button class="cat-tab active" data-cat="all">
+        <span class="material-symbols-outlined">apps</span> All Items
+      </button>
+      <button class="cat-tab" data-cat="staples">
+        <span class="material-symbols-outlined">grain</span> Staples
+      </button>
+      <button class="cat-tab" data-cat="dairy">
+        <span class="material-symbols-outlined">egg</span> Dairy
+      </button>
+      <button class="cat-tab" data-cat="snacks">
+        <span class="material-symbols-outlined">cookie</span> Snacks
+      </button>
+      <button class="cat-tab" data-cat="beverages">
+        <span class="material-symbols-outlined">coffee</span> Beverages
+      </button>
+      <button class="cat-tab" data-cat="toiletries">
+        <span class="material-symbols-outlined">soap</span> Toiletries
+      </button>
+      <button class="cat-tab" data-cat="household">
+        <span class="material-symbols-outlined">cleaning_services</span> Household
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap anim-fade-up d2">
+      <table class="ksp-table">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Price</th>
+            <th>Stock Qty</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="invBody">
+          <tr><td colspan="5"><div class="skeleton" style="height:48px;border-radius:0;"></div></td></tr>
+          <tr><td colspan="5"><div class="skeleton" style="height:48px;border-radius:0;"></div></td></tr>
+          <tr><td colspan="5"><div class="skeleton" style="height:48px;border-radius:0;"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Add/Edit modal -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span class="material-symbols-outlined">inventory_2</span><span id="modalTitle">Add Product</span></h3>
+        <button class="icon-btn" onclick="closeModal()"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="form-group">
+          <label>Item Name</label>
+          <input type="text" class="input" id="fName" placeholder="e.g. Aashirvaad Atta 5kg">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" class="input" id="fPrice" placeholder="0.00" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Stock Qty</label>
+            <input type="number" class="input" id="fStock" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="fCat">
+            <option value="staples">Staples</option>
+            <option value="dairy">Dairy</option>
+            <option value="snacks">Snacks</option>
+            <option value="beverages">Beverages</option>
+            <option value="toiletries">Toiletries</option>
+            <option value="household">Household</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Barcode (optional)</label>
+          <input type="text" class="input" id="fBarcode" placeholder="Scan or enter barcode">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveProduct()">
+          <span class="material-symbols-outlined">save</span> Save Product
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Update Modal -->
+  <div class="modal-overlay" id="stockModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>
+          <span class="material-symbols-outlined" style="color:var(--green-400)">package_2</span>
+          <span>Update Stock</span>
+        </h3>
+        <button class="icon-btn" onclick="closeStockModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="background:var(--sand-50);border:1px solid var(--border-subtle);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:4px;">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:3px;">PRODUCT</div>
+          <div style="font-weight:700;font-size:1rem;" id="stkProductName">—</div>
+          <div style="font-size:0.82rem;color:var(--text-tertiary);margin-top:4px;">
+            Current stock: <strong id="stkCurrentStock" style="color:var(--text-primary);">—</strong> units
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Stock Change Amount <span style="color:var(--text-tertiary);font-weight:400">(use − to deduct)</span></label>
+          <input type="number" class="input" id="stkDelta" placeholder="e.g. +20 or −10">
+        </div>
+
+        <!-- Quick presets -->
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;color:var(--text-tertiary);letter-spacing:.06em;margin-bottom:6px;">QUICK PRESETS</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="applyStockPreset(10)">+10</button>
+            <button class="btn btn-ghost btn-sm" onclick="applyStockPreset(50)">+50</button>
+            <button class="btn btn-ghost btn-sm" onclick="applyStockPreset(100)">+100</button>
+            <button class="btn btn-ghost btn-sm" onclick="applyStockPreset(-1)" style="color:var(--red-400)">−1</button>
+            <button class="btn btn-ghost btn-sm" onclick="applyStockPreset(-5)" style="color:var(--red-400)">−5</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Reason</label>
+          <select id="stkReason" style="width:100%;height:42px;padding:0 14px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--r-lg);font-size:0.9rem;color:var(--text-primary);">
+            <option value="restock">Restock (received goods)</option>
+            <option value="manual_adjustment">Manual Adjustment</option>
+            <option value="correction">Correction (count error)</option>
+          </select>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(239,159,39,0.08);border-radius:var(--r-md);font-size:0.78rem;color:var(--gold-600);">
+          <span class="material-symbols-outlined" style="font-size:1rem;">info</span>
+          Stock cannot go below zero. All changes are logged to inventory history.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeStockModal()">Cancel</button>
+        <button class="btn btn-secondary" id="saveStockBtn" onclick="saveStockUpdate()">
+          <span class="material-symbols-outlined">save</span> Apply Change
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/pages/inventory.js"></script>
+  <script type="module" src="./js/navigation.js"></script>
+</body>
+</html>
