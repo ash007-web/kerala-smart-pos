@@ -5,6 +5,7 @@
 
 import { subscribeProducts } from "../services/productService.js";
 import { completeSale }      from "../services/transactionService.js";
+import { printReceipt }      from "../services/printService.js";
 import { waitForAuth }       from "../firebase.js";
 
 const EMOJI = { staples:"🌾", dairy:"🥛", snacks:"🍿", beverages:"☕", toiletries:"🧼", household:"🧹" };
@@ -16,6 +17,7 @@ let cart         = [];
 let activeMethod = "cash";
 let activeCat    = "all";
 let unsub        = null;
+let lastTx       = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const searchInput = document.getElementById("searchInput");
@@ -135,11 +137,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     btn.innerHTML = `<i data-lucide="loader-2" style="animation:spin 0.8s linear infinite" class="lucide"></i> Processing…`;
     if(window.lucide) window.lucide.createIcons();
     try {
-      const { billId, total } = await completeSale({
-        items: cart.map(i => ({ id:i.id, name:i.name, price:i.price, qty:i.qty })),
+      const txData = {
+        items: cart.map(i => ({ id:i.id, name:i.name, price:i.price, qty:i.qty, lineTotal: parseFloat((i.price * i.qty).toFixed(2)) })),
         paymentMethod: activeMethod,
         taxRate: TAX,
-      });
+      };
+      
+      const { billId, total } = await completeSale(txData);
+      
+      const sub = cart.reduce((s,i) => s + i.price * i.qty, 0);
+      const taxAmt = +(sub * TAX).toFixed(2);
+      
+      // Save for printing
+      lastTx = {
+        ...txData,
+        billId,
+        total,
+        subtotal: sub.toFixed(2),
+        tax: taxAmt.toFixed(2),
+        timestamp: new Date().toISOString()
+      };
       // Show success
       document.getElementById("successRef").textContent   = `Bill #${billId}`;
       document.getElementById("successTotal").textContent = fmtINR(total);
@@ -159,6 +176,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   window.closeSuccess = function() {
     document.getElementById("successOverlay").classList.remove("show");
+  };
+
+  window.toggleCart = function() {
+    const panel = document.querySelector('.pos-right');
+    if (panel) panel.classList.toggle('active');
+  };
+
+  window.printLastReceipt = function() {
+    if (!lastTx) return;
+    const btn = document.getElementById("printReceiptBtn");
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = `<i data-lucide="loader-2" style="animation:spin 0.8s linear infinite" class="lucide"></i> Printing…`;
+    btn.disabled = true;
+    if (window.lucide) window.lucide.createIcons();
+
+    try {
+      printReceipt(lastTx);
+    } catch(e) {
+      showToast("Print failed: " + e.message, "danger");
+    } finally {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+      if (window.lucide) window.lucide.createIcons();
+    }
   };
 
   // Keyboard shortcuts
@@ -249,6 +290,14 @@ function renderBill() {
   document.getElementById("subtotal").textContent = fmtINR(sub);
   document.getElementById("taxAmt").textContent   = fmtINR(tax);
   document.getElementById("totalAmt").textContent = fmtINR(tot);
+  
+  const count = cart.reduce((s,i) => s + i.qty, 0);
+  const badge = document.getElementById("mobileCartCount");
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? "flex" : "none";
+  }
+  
   if (summary) summary.style.display = "block";
   if (btn)     btn.disabled = false;
 }

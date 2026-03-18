@@ -70,15 +70,20 @@ function buildHeader(user) {
 
   el.innerHTML = `
     <header class="ksp-header anim-fade">
-      <a href="index.html" class="logo" style="text-decoration:none;">
-        <div class="logo-mark">
-          <img src="assets/logo/quickbill-mark.svg" alt="QuickBill Logo Mark" style="width: 24px; height: 24px;">
-        </div>
-        <div>
-          QuickBill POS
-          <span>Seamless Retailing</span>
-        </div>
-      </a>
+      <div style="display:flex;align-items:center;">
+        <button class="icon-btn mobile-menu-toggle" onclick="toggleSidebar()">
+           <i data-lucide="menu"></i>
+        </button>
+        <a href="index.html" class="logo" style="text-decoration:none;">
+          <div class="logo-mark">
+            <img src="assets/logo/quickbill-mark.svg" alt="QuickBill Logo Mark" style="width: 24px; height: 24px;">
+          </div>
+          <div>
+            QuickBill POS
+            <span>Seamless Retailing</span>
+          </div>
+        </a>
+      </div>
       <div class="header-right">
         <button class="icon-btn notif-btn" title="Low stock alerts" onclick="window.location.href='inventory.html'">
           <i data-lucide="bell"></i>
@@ -102,7 +107,7 @@ function buildSidebar(activePage) {
     return `
       <a href="${item.href}" class="nav-item ${active}" title="${item.label}">
         <i data-lucide="${item.icon}"></i>
-        <span>${item.label}</span>
+        <span class="nav-label">${item.label}</span>
       </a>`;
   };
 
@@ -112,9 +117,9 @@ function buildSidebar(activePage) {
       ${NAV_ITEMS.map(makeItem).join("")}
       <div class="sidebar-bottom">
         ${BOTTOM_ITEMS.map(makeItem).join("")}
-        <button class="nav-item" onclick="handleLogout()" style="width:100%;background:transparent;color:var(--color-danger);">
+        <button class="nav-item" onclick="handleLogout()" style="width:100%;min-height:44px;background:transparent;color:var(--color-danger);border:none;cursor:pointer;">
           <i data-lucide="log-out"></i>
-          <span>Logout</span>
+          <span class="nav-label">Logout</span>
         </button>
       </div>
     </nav>
@@ -183,6 +188,12 @@ window.relativeTime = (ts) => {
   if (m < 1)  return "just now";
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
   return fmtDate(ts);
+};
+
+window.toggleSidebar = function() {
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar) {
+    sidebar.classList.toggle("active");
+  }
 };

@@ -14,6 +14,7 @@ body.dark {
    RESET & BASE
    ═══════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+img, video { max-width: 100%; height: auto; }
 html, body { height: 100%; }
 body {
   font-family: var(--font-family-body);
@@ -116,6 +117,7 @@ body.dark .ksp-header {
   transition: transform var(--transition-speed) var(--transition-ease);
 }
 .user-avatar:hover { transform: scale(1.08); }
+.mobile-menu-toggle { display: none; }
 
 /* ═══════════════════════════════════════════
    SIDEBAR
@@ -139,7 +141,8 @@ body.dark .ksp-header {
   transition: all var(--transition-speed) var(--transition-ease);
   position: relative;
 }
-.nav-item .lucide { width: 20px; height: 20px; flex-shrink: 0; }
+.nav-item .lucide { width: 24px; height: 24px; flex-shrink: 0; }
+.nav-label { transition: opacity 0.2s ease; }
 .nav-item:hover { background: var(--color-neutral-100); color: var(--color-text-primary); }
 .nav-item.active {
   background: var(--color-primary);
@@ -357,62 +360,92 @@ body.dark .skeleton {
    RESPONSIVE BREAKPOINTS
    ═══════════════════════════════════════════ */
 
-/* 1200px — reduce sidebar padding */
-@media (max-width: 1200px) {
+/* Desktop (min-width: 1200px) */
+@media (min-width: 1200px) {
+  .main-content { padding: 28px 32px 40px; }
+}
+
+/* Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 80px; }
   .main-content { padding: 20px 24px 32px; }
+  /* Collapsible sidebar - icons only */
+  body { grid-template-columns: 80px 1fr; }
+  .ksp-sidebar { padding: 18px 8px; align-items: center; }
+  .nav-label { display: none; }
+  .sidebar-section-label { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .nav-badge { position: absolute; top: 2px; right: 2px; }
+  .logo span { display: none; }
 }
 
-/* 992px — tighten layout */
-@media (max-width: 992px) {
-  :root { --sidebar-w: 200px; }
-  .main-content { padding: 18px 18px 28px; }
-  .page-title { font-size: 1.45rem; }
-  /* Stat grids: max 2 columns */
-  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-}
-
-/* 768px — hide sidebar, allow body scroll */
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
   body {
     grid-template-columns: 1fr;
-    overflow: auto;          /* FIX: body was overflow:hidden — unscrollable on mobile */
+    overflow: auto;
   }
-  #sidebar { display: none; }
+  
   .main-content {
     grid-column: 1;
     padding: 16px;
     height: auto;
     overflow-y: visible;
   }
-  /* Tables: horizontal scroll container */
+
+  /* Header adjustments */
+  .mobile-menu-toggle { display: flex; margin-right: 12px; }
+  .ksp-header { padding: 0 16px; }
+  .logo { font-size: 1.1rem; }
+  
+  /* Sidebar becomes drawer */
+  #sidebar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-100%);
+    z-index: 1000;
+    background: var(--color-surface);
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  }
+  #sidebar.active {
+    transform: translateX(0);
+  }
+  
+  /* Restore labels inside drawer */
+  .ksp-sidebar { padding: 18px 12px; align-items: stretch; }
+  .nav-label { display: inline-block; }
+  .sidebar-section-label { display: block; }
+  .nav-item { justify-content: flex-start; padding: 10px 14px; }
+  
+  /* Typography */
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
+  .page-title { font-size: 22px; }
+  
+  /* Buttons and Touch Targets */
+  button, .btn { min-height: 44px; min-width: 44px; }
+  .btn { padding: 12px 16px; }
+  .page-header .btn { width: 100%; justify-content: center; }
+
+  /* Tables */
   .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
   .ksp-table { min-width: 600px; }
-  /* Full-width buttons on mobile */
-  .page-header .btn { width: 100%; justify-content: center; }
-  /* Stat grids: single column */
-  .stats-grid { grid-template-columns: 1fr !important; }
+  
+  /* Modals */
+  .modal-box { width: 90%; max-width: 400px; }
 }
 
-/* 576px — very small screens */
-@media (max-width: 576px) {
-  .page-title { font-size: 1.25rem; }
+/* Small Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  .modal-box { width: 95%; max-width: none; }
   .card { padding: 16px 14px; }
-  .btn { padding: 8px 14px; font-size: 0.82rem; }
-  .badge { font-size: 0.68rem; padding: 2px 8px; }
-  /* POS: stack product grid and cart vertically */
-  .pos-wrap {
-    flex-direction: column !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-  .product-panel, .bill-panel {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-  .bill-panel { max-height: none; }
 }
+
