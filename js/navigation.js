@@ -76,7 +76,7 @@ function buildHeader(user) {
         </button>
         <a href="index.html" class="logo" style="text-decoration:none;">
           <div class="logo-mark">
-            <img src="assets/logo/quickbill-mark.svg" alt="QuickBill Logo Mark" style="width: 24px; height: 24px;">
+            <img src="./assets/logo/quickbill-mark.svg" alt="QuickBill Logo Mark" style="width: 24px; height: 24px;">
           </div>
           <div>
             QuickBill POS
