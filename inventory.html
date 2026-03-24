@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuickBill POS — Inventory</title>
-  <link rel="icon" href="./assets/logo/quickbill-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles/global.css">
+  <link rel="icon" href="/assets/logo/quickbill-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles/global.css">
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -117,9 +117,18 @@
 
     <!-- Stat strip -->
     <div class="inv-stats anim-fade-up d1" id="invStats">
-      <div class="inv-stat"><div class="inv-stat-label">TOTAL PRODUCTS</div><div class="inv-stat-value skeleton" style="height:28px;width:60px;border-radius:6px;"></div></div>
-      <div class="inv-stat"><div class="inv-stat-label">LOW STOCK</div><div class="inv-stat-value skeleton" style="height:28px;width:40px;border-radius:6px;"></div></div>
-      <div class="inv-stat"><div class="inv-stat-label">OUT OF STOCK</div><div class="inv-stat-value skeleton" style="height:28px;width:40px;border-radius:6px;"></div></div>
+      <div class="inv-stat" style="border-left:4px solid var(--color-primary);">
+        <div class="inv-stat-label">TOTAL PRODUCTS</div>
+        <div class="inv-stat-value" id="statTotal">—</div>
+      </div>
+      <div class="inv-stat" style="background:#fffbeb;border-left:4px solid var(--color-warning);">
+        <div class="inv-stat-label" style="color:#92400e;">LOW STOCK</div>
+        <div class="inv-stat-value" id="statLow" style="color:var(--color-warning);">—</div>
+      </div>
+      <div class="inv-stat" style="background:#fef2f2;border-left:4px solid var(--color-danger);">
+        <div class="inv-stat-label" style="color:#991b1b;">OUT OF STOCK</div>
+        <div class="inv-stat-value" id="statOut" style="color:var(--color-danger);">—</div>
+      </div>
     </div>
 
     <!-- Category tabs -->
@@ -277,12 +286,14 @@
     </div>
   </div>
 
-  <script type="module" src="./js/pages/inventory.js"></script>
-  <script type="module" src="./js/navigation.js"></script>
+  <script type="module" src="/js/pages/inventory.js"></script>
+  <script type="module" src="/js/navigation.js"></script>
   <script>lucide.createIcons();</script>
   <!-- jQuery & AJAX -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="js/jquery-ui.js"></script>
-  <script src="js/ajax-service.js"></script>
+  <script src="/js/jquery-ui.js"></script>
+  <script src="/js/ajax-service.js"></script>
 </body>
 </html>
+
+

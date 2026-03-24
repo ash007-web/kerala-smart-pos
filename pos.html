@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="./assets/logo/quickbill-mark.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/logo/quickbill-mark.svg" type="image/svg+xml">
   <title>QuickBill POS — New Bill</title>
-  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="/styles/global.css">
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -274,10 +274,8 @@
     .complete-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
     .complete-btn .lucide { width:18px; height:18px; }
 
-    /* Success modal */
-    /* Success modal */
     .modal-overlay {
-      position:fixed; inset:0; background:var(--color-neutral-900);
+      position:fixed; inset:0; background:rgba(0,0,0,0.5);
       backdrop-filter:blur(6px);
       display:flex; align-items:center; justify-content:center;
       z-index:500; opacity:0; pointer-events:none;
@@ -304,11 +302,11 @@
       font-family:var(--font-mono); font-size:0.85rem;
       color:var(--text-secondary); margin-bottom:20px;
     }
-    .success-total { font-family:var(--font-display); font-size:2rem; color:var(--text-primary); margin-bottom:6px; }
+    .success-total { font-family:var(--font-family-body); font-size:2rem; font-weight:700; color:var(--color-text-primary); margin-bottom:6px; }
     .success-method {
       display:inline-block; padding:4px 12px;
-      background:var(--green-50); color:var(--green-600);
-      border-radius:var(--r-full); font-size:0.8rem; font-weight:700;
+      background:#d1fae5; color:#065f46;
+      border-radius:var(--radius-full); font-size:0.8rem; font-weight:700;
       margin-bottom:24px;
     }
     .modal-actions { display:flex; gap:10px; }
@@ -462,13 +460,14 @@
     </div>
   </main>
 
-  <script type="module" src="./js/pages/pos.js"></script>
-  <script type="module" src="./js/navigation.js"></script>
+  <script type="module" src="/js/pages/pos.js"></script>
+  <script type="module" src="/js/navigation.js"></script>
   <script>lucide.createIcons();</script>
   <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   <!-- jQuery & AJAX -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="js/jquery-ui.js"></script>
-  <script src="js/ajax-service.js"></script>
+  <script src="/js/jquery-ui.js"></script>
+  <script src="/js/ajax-service.js"></script>
 </body>
 </html>
+

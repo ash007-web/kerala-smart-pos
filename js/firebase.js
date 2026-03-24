@@ -21,6 +21,20 @@ const firebaseConfig = {
   appId:             "1:928348494735:web:871c42b3feaf74ce93c9fa",
 };
 
+// ─── Production Deployment Checklist ────────────────────────────────────────
+// For Google Sign-In to work on deployed domains, add your domains to:
+//   Firebase Console → Authentication → Settings → Authorized Domains
+//
+// Required authorized domains for deployment:
+//   - localhost                   (always present by default)
+//   - your-project.vercel.app    (add this for Vercel)
+//   - your-project.pages.dev     (add this for Cloudflare Pages)
+//   - your-custom-domain.com     (add any custom domain)
+//
+// Without this, signInWithPopup() will fail with "auth/unauthorized-domain".
+// ───────────────────────────────────────────────────────────────────────────
+
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

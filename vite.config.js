@@ -7,6 +7,9 @@ export default defineConfig({
   // Serve files from project root
   root: ".",
 
+  // Root-relative base path — required for Vercel/Netlify/Firebase Hosting
+  base: "/",
+
   // Build output directory
   build: {
     outDir: "dist",
