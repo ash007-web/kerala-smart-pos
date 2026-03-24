@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none" role="img" aria-label="QuickBill POS">
+  <!-- Icon background -->
+  <rect width="48" height="48" rx="12" fill="#5211d4"/>
+  <!-- Receipt / lightning icon inside -->
+  <path d="M16 12h16a2 2 0 0 1 2 2v22l-4-3-4 3-4-3-4 3V14a2 2 0 0 1 2-2z" fill="white" opacity="0.9"/>
+  <path d="M20 18h8M20 22h8M20 26h5" stroke="#5211d4" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Wordmark -->
+  <text x="60" y="20" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" fill="#111827" letter-spacing="-0.3">QuickBill</text>
+  <text x="60" y="36" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" fill="#5211d4" letter-spacing="2">POS</text>
+  <!-- Tagline dot separator -->
+  <circle cx="118" cy="30" r="2" fill="#e9ddff"/>
+</svg>
