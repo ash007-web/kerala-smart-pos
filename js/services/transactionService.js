@@ -11,13 +11,27 @@ import {
   serverTimestamp, runTransaction, increment,
   Timestamp,
 } from "firebase/firestore";
+import { showLoader, hideLoader } from "../loader.js";
 
 export function subscribeTransactions(callback, n = 50) {
   const q = query(col.transactions(), orderBy("timestamp", "desc"), limit(n));
+  
+  let firstLoad = true;
+  showLoader("Syncing ledger...");
+
   return onSnapshot(
     q,
-    (snap) => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-    (err)  => console.error("[KSP] subscribeTransactions:", err)
+    (snap) => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      if (firstLoad) {
+        hideLoader();
+        firstLoad = false;
+      }
+    },
+    (err)  => {
+      console.error("[KSP] subscribeTransactions:", err);
+      hideLoader();
+    }
   );
 }
 
@@ -65,66 +79,73 @@ export async function createTransaction({
 
   const txRef = doc(col.transactions());
 
-  await runTransaction(db, async (transaction) => {
-    // 1. Check stock for all items
-    for (const item of items) {
-      const productRef = doc(col.products(), item.id);
-      const productSnap = await transaction.get(productRef);
-      if (!productSnap.exists()) {
-        throw new Error(`Product ${item.name} not found.`);
+  showLoader("Processing payment...");
+  try {
+    await runTransaction(db, async (transaction) => {
+      // 1. Check stock for all items
+      for (const item of items) {
+        const productRef = doc(col.products(), item.id);
+        const productSnap = await transaction.get(productRef);
+        if (!productSnap.exists()) {
+          throw new Error(`Product ${item.name} not found.`);
+        }
+        const currentStock = productSnap.data().stock || 0;
+        if (currentStock < item.qty) {
+          throw new Error(`Insufficient stock for ${item.name}. Available: ${currentStock}`);
+        }
       }
-      const currentStock = productSnap.data().stock || 0;
-      if (currentStock < item.qty) {
-        throw new Error(`Insufficient stock for ${item.name}. Available: ${currentStock}`);
-      }
-    }
 
-    // 2. Create transaction document
-    transaction.set(txRef, {
-      billId,
-      items: items.map(i => ({
-        productId: i.id,
-        name:      i.name,
-        price:     i.price,
-        qty:       i.qty,
-        lineTotal: +(i.price * i.qty).toFixed(2),
-      })),
-      subtotal, tax, total,
-      paymentMethod,
-      customerId: customerId ?? null,
-      status:    "paid",
-      timestamp: serverTimestamp(),
+      // 2. Create transaction document
+      transaction.set(txRef, {
+        billId,
+        items: items.map(i => ({
+          productId: i.id,
+          name:      i.name,
+          price:     i.price,
+          qty:       i.qty,
+          lineTotal: +(i.price * i.qty).toFixed(2),
+        })),
+        subtotal, tax, total,
+        paymentMethod,
+        customerId: customerId ?? null,
+        status:    "paid",
+        timestamp: serverTimestamp(),
+      });
+
+      // 3. Update stock and create logs
+      for (const item of items) {
+        transaction.update(doc(col.products(), item.id), {
+          stock:     increment(-item.qty),
+          updatedAt: serverTimestamp(),
+        });
+
+        const logRef = doc(col.inventoryLogs());
+        transaction.set(logRef, {
+          productId:   item.id,
+          productName: item.name,
+          change:      -item.qty,
+          reason:      "sale",
+          billId,
+          timestamp:   serverTimestamp(),
+        });
+      }
+
+      // 4. Update customer stats if applicable
+      if (customerId) {
+        transaction.update(doc(col.customers(), customerId), {
+          totalSpent: increment(total),
+          billCount:  increment(1),
+          updatedAt:  serverTimestamp(),
+        });
+      }
     });
 
-    // 3. Update stock and create logs
-    for (const item of items) {
-      transaction.update(doc(col.products(), item.id), {
-        stock:     increment(-item.qty),
-        updatedAt: serverTimestamp(),
-      });
-
-      const logRef = doc(col.inventoryLogs());
-      transaction.set(logRef, {
-        productId:   item.id,
-        productName: item.name,
-        change:      -item.qty,
-        reason:      "sale",
-        billId,
-        timestamp:   serverTimestamp(),
-      });
-    }
-
-    // 4. Update customer stats if applicable
-    if (customerId) {
-      transaction.update(doc(col.customers(), customerId), {
-        totalSpent: increment(total),
-        billCount:  increment(1),
-        updatedAt:  serverTimestamp(),
-      });
-    }
-  });
-
-  return { billId, total, txId: txRef.id };
+    hideLoader();
+    return { billId, total, txId: txRef.id };
+  } catch (err) {
+    hideLoader();
+    throw err;
+  }
 }
 
 export const completeSale = createTransaction;

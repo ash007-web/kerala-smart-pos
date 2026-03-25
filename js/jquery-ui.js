@@ -1,52 +1,52 @@
-$(document).ready(function() {
+$(document).ready(function () {
   // Sidebar toggle
-  $(".menu-toggle").click(function() {
+  $(".menu-toggle").click(function () {
     $(".sidebar").toggleClass("active");
   });
 
   // Mobile sidebar toggle (generic fallback)
-  $("#menuToggle, .btn-icon").on("click", function() {
+  $("#menuToggle, .btn-icon").on("click", function () {
     if ($(this).find("i[data-lucide='menu']").length > 0) {
       $("#sidebar").toggleClass("active");
     }
   });
 
   // Toast auto-hide
-  setTimeout(function() {
+  setTimeout(function () {
     $(".toast").fadeOut();
   }, 3000);
 
   // Smooth hover animations on cards
   $(".card, .cust-card, .stat-card, .inv-card").hover(
-    function() {
+    function () {
       $(this).css("transform", "translateY(-2px)");
       $(this).css("transition", "transform 0.2s ease-in-out");
     },
-    function() {
+    function () {
       $(this).css("transform", "none");
     }
   );
 
   // Global AJAX loading indicator
-  $(document).ajaxStart(function() {
+  $(document).ajaxStart(function () {
     $("#loader").show();
   });
 
-  $(document).ajaxStop(function() {
+  $(document).ajaxStop(function () {
     $("#loader").hide();
   });
 });
 
 // Modal control
-window.openModal = function() {
+window.openModal = function () {
   $(".modal, .modal-overlay").fadeIn();
 };
 
-window.closeModal = function() {
+window.closeModal = function () {
   $(".modal, .modal-overlay").fadeOut();
 };
 
 // Cart updates (POS)
-window.updateCartUI = function(total) {
+window.updateCartUI = function (total) {
   $("#cart-total").text("₹" + total);
 };

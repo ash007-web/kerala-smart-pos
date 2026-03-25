@@ -9,16 +9,30 @@ import {
   getDocs, onSnapshot, query, where, orderBy,
   serverTimestamp, increment,
 } from "firebase/firestore";
+import { showLoader, hideLoader } from "../loader.js";
 
 export function subscribeProducts(callback, categoryFilter = null) {
   const q = categoryFilter
     ? query(col.products(), where("category", "==", categoryFilter), orderBy("name"))
     : query(col.products(), orderBy("name"));
 
+  let firstLoad = true;
+  // Show loader for the initial pull
+  showLoader("Syncing products...");
+
   return onSnapshot(
     q,
-    (snap) => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-    (err)  => console.error("[KSP] subscribeProducts:", err)
+    (snap) => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      if (firstLoad) {
+        hideLoader();
+        firstLoad = false;
+      }
+    },
+    (err)  => {
+      console.error("[KSP] subscribeProducts:", err);
+      hideLoader();
+    }
   );
 }
 

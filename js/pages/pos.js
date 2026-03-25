@@ -41,11 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return; // waitForAuth redirects to login.html on failure
   }
 
-  // Show loading state
-  productsGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-    <i data-lucide="loader-2" style="animation:spin 1s linear infinite; width:32px; height:32px"></i>
-    <p>Loading products…</p>
-  </div>`;
+  // Initial showLoader is already called by subscribeProducts in productService
   if(window.lucide) window.lucide.createIcons();
 
   let firstLoad = true;

@@ -1,5 +1,6 @@
 @import url('/styles/theme.css');
-@import url('/styles/layout.css');/* Dark mode override placeholder */
+@import url('/styles/layout.css');
+@import url('/components/loader.css');/* Dark mode override placeholder */
 /* Dark mode override */
 body.dark {
   --color-bg: #0f172a;

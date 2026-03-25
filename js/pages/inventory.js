@@ -38,11 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return; // redirected to login
   }
 
-  // Show loading state
-  invBody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
-    <i data-lucide="loader-2" style="animation:spin 1s linear infinite; width:32px; height:32px"></i>
-    <p>Loading inventory…</p>
-  </div></td></tr>`;
+  // Loader is handled globally by subscribeProducts in productService
   if (window.lucide) window.lucide.createIcons();
 
   // ── Real-time listener ────────────────────────────
