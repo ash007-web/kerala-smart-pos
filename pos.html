@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -302,7 +302,7 @@
       font-family:var(--font-mono); font-size:0.85rem;
       color:var(--text-secondary); margin-bottom:20px;
     }
-    .success-total { font-family:var(--font-family-body); font-size:2rem; font-weight:700; color:var(--color-text-primary); margin-bottom:6px; }
+    .success-total { margin-bottom:12px; }
     .success-method {
       display:inline-block; padding:4px 12px;
       background:#d1fae5; color:#065f46;
@@ -349,6 +349,9 @@
             </button>
             <button class="chip" data-cat="household">
               <i data-lucide="spray-can"></i> Household
+            </button>
+            <button class="chip" data-cat="stationary">
+              <i data-lucide="pencil"></i> Stationary
             </button>
           </div>
         </div>
@@ -397,15 +400,15 @@
           <div class="bill-summary" id="billSummary" style="display:none;">
             <div class="summary-row">
               <span>Subtotal</span>
-              <span id="subtotal" class="mono">₹0.00</span>
+              <span id="subtotal" class="amount amount-muted" style="font-size:0.95rem;">₹0.00</span>
             </div>
             <div class="summary-row">
               <span>GST <span id="taxRateLabel">(18%)</span></span>
-              <span id="taxAmt" class="mono">₹0.00</span>
+              <span id="taxAmt" class="amount amount-muted" style="font-size:0.95rem;">₹0.00</span>
             </div>
-            <div class="summary-row total">
+            <div class="summary-row total total-row">
               <span>Total</span>
-              <span id="totalAmt" class="mono">₹0.00</span>
+              <span id="totalAmt" class="amount-total">₹0.00</span>
             </div>
           </div>
 
@@ -468,6 +471,32 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-ui.js"></script>
   <script src="/js/ajax-service.js"></script>
+
+  <script>
+  // ── jQuery Interactions: POS Page ─────────────────────────────────────
+  $(function() {
+    // Product card hover: lift + border highlight + shadow
+    $(document).on("mouseenter", ".product-card:not(.out-of-stock)", function() {
+      $(this).css({
+        "transform":    "translateY(-4px)",
+        "box-shadow":   "0 12px 28px rgba(44,24,16,0.13)",
+        "border-color": "#EF9F27",
+        "transition":   "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease"
+      });
+    }).on("mouseleave", ".product-card:not(.out-of-stock)", function() {
+      $(this).css({
+        "transform":    "",
+        "box-shadow":   "",
+        "border-color": ""
+      });
+    });
+
+    // Table row hover
+    $(document).on("mouseenter", ".ksp-table tbody tr", function() {
+      $(this).css("transition", "background 180ms ease");
+    });
+  });
+  </script>
 </body>
 </html>
 

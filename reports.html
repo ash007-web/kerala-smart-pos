@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -214,7 +214,7 @@
             <i data-lucide="${s.ico}" style="color:${s.ic};"></i>
           </div>
           <div class="rep-stat-label">${s.label}</div>
-          <div class="rep-stat-value">${s.value}</div>
+          <div class="rep-stat-value amount-total ${s.label==='REVENUE'?'amount-positive':''}">${s.value}</div>
         </div>`).join("");
       if (window.lucide) window.lucide.createIcons();
     }
@@ -318,29 +318,44 @@
           <div class="bar-track">
             <div class="bar-fill" style="width:${(rev / max * 100).toFixed(1)}%;"></div>
           </div>
-          <span class="bar-val">${fmtINRShort(rev)}</span>
+          <span class="bar-val amount" style="font-size:0.85rem">${fmtINRShort(rev)}</span>
         </div>`).join("")}</div>`;
     }
 
-    // ── CSV export ──────────────────────────────────────
+    // ── CSV export (item-level) ──────────────────────────────────
     window.exportReport = function() {
-      const headers = ["Bill ID", "Date", "Time", "Payment", "Status", "Subtotal", "Tax", "Total"];
-      const rows = currentTxs.map(t => [
-        t.billId ?? t.id,
-        fmtDate(t.timestamp),
-        fmtTime(t.timestamp),
-        t.paymentMethod ?? "—",
-        t.status ?? "—",
-        t.subtotal ?? 0,
-        t.tax ?? 0,
-        t.total ?? 0,
-      ]);
+      const headers = ["Date","Bill ID","Item Name","Qty","Unit Price (₹)","Line Total (₹)","Payment Method","Status"];
+      const rows = [];
+      currentTxs.forEach(t => {
+        const date   = fmtDate(t.timestamp);
+        const time   = fmtTime(t.timestamp);
+        const billId = t.billId ?? t.id;
+        const method = t.paymentMethod ?? "—";
+        const status = t.status ?? "—";
+        const items  = t.items ?? [];
+        if (items.length === 0) {
+          rows.push([date + " " + time, billId, "(no item detail)", "", "", t.total ?? 0, method, status]);
+        } else {
+          items.forEach(item => {
+            rows.push([
+              date + " " + time,
+              billId,
+              item.name,
+              item.qty,
+              item.price,
+              item.lineTotal ?? (item.price * item.qty).toFixed(2),
+              method,
+              status
+            ]);
+          });
+        }
+      });
       const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
       const a = document.createElement("a");
-      a.href = "data:text/csv," + encodeURIComponent(csv);
-      a.download = `report-${activePeriod}-${new Date().toISOString().split("T")[0]}.csv`;
+      a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      a.download = `report-items-${activePeriod}-${new Date().toISOString().split("T")[0]}.csv`;
       a.click();
-      showToast("Report exported!", "success");
+      showToast(`Report exported — ${rows.length} item rows`, "success");
     };
 
     loadReport();

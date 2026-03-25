@@ -8,7 +8,7 @@ import { completeSale }      from "../services/transactionService.js";
 import { printReceipt }      from "../services/printService.js";
 import { waitForAuth }       from "../firebase.js";
 
-const EMOJI = { staples:"🌾", dairy:"🥛", snacks:"🍿", beverages:"☕", toiletries:"🧼", household:"🧹" };
+const EMOJI = { staples:"🌾", dairy:"🥛", snacks:"🍿", beverages:"☕", toiletries:"🧼", household:"🧹", stationary:"✏️" };
 const TAX   = 0.18;
 
 let allProducts  = [];
@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = await waitForAuth();
     shopId = user.uid;
     console.log("[KSP] POS auth ready, shopId:", shopId);
+
   } catch {
     return; // waitForAuth redirects to login.html on failure
   }
@@ -159,7 +160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
       // Show success
       document.getElementById("successRef").textContent   = `Bill #${billId}`;
-      document.getElementById("successTotal").textContent = fmtINR(total);
+      document.getElementById("successTotal").innerHTML   = `<span class="amount-total">${fmtINR(total)}</span>`;
       document.getElementById("successMethod").textContent= activeMethod.toUpperCase();
       document.getElementById("successOverlay").classList.add("show");
       cart = [];
@@ -237,7 +238,7 @@ function renderGrid() {
         <div class="product-name">${p.name}</div>
         <div class="product-cat">${p.category}</div>
         <div class="product-footer">
-          <span class="product-price">${fmtINR(p.price)}</span>
+          <span class="product-price amount" style="font-size:0.95rem;">${fmtINR(p.price)}</span>
           <span class="product-stock ${low?'low':''}">${p.stock}</span>
         </div>
         <button class="add-btn" onclick="event.stopPropagation();addToCart('${p.id}')" ${oos?'disabled':''}>
@@ -278,7 +279,7 @@ function renderBill() {
         <span class="qty-val">${i.qty}</span>
         <button class="qty-btn" onclick="changeQty('${i.id}',1)"><i data-lucide="plus"></i></button>
       </div>
-      <span class="item-total">${fmtINR(i.price * i.qty)}</span>
+      <span class="item-total amount" style="font-size:0.95rem;">${fmtINR(i.price * i.qty)}</span>
       <button class="remove-item" onclick="removeItem('${i.id}')"><i data-lucide="x"></i></button>
     </div>`).join("");
   if(window.lucide) window.lucide.createIcons();

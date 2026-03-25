@@ -12,11 +12,12 @@ import { waitForAuth }    from "../firebase.js";
 import { doc, addDoc, updateDoc, serverTimestamp, increment } from "firebase/firestore";
 
 
-const EMOJI = { staples:"🌾", dairy:"🥛", snacks:"🍿", beverages:"☕", toiletries:"🧼", household:"🧹" };
+const EMOJI = { staples:"🌾", dairy:"🥛", snacks:"🍿", beverages:"☕", toiletries:"🧼", household:"🧹", stationary:"✏️" };
 
 let allItems  = [];
 let activeCat = "all";
 let searchTerm = "";
+let stockFilter = "all"; // 'all' | 'low' | 'oos'
 let unsub     = null;
 // Stock modal state
 let stockProductId   = null;
@@ -63,6 +64,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderTable();
     });
   }
+
+  // ── Expose stock filter for jQuery buttons ──────────────
+  window.invFilterByStock = function(type) {
+    stockFilter = type; // 'low' | 'oos' | 'all'
+    renderTable();
+  };
 
   // ── Search ────────────────────────────────────────────
   if (invSearch) {
@@ -268,34 +275,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ── Render helpers ────────────────────────────────────────
 
 function renderStats() {
-  const statsEl = document.getElementById("invStats");
-  if (!statsEl) return;
   const total = allItems.length;
   const low   = allItems.filter(p => p.stock <= 5 && p.stock > 0).length;
   const oos   = allItems.filter(p => p.stock <= 0).length;
-  statsEl.innerHTML = `
-    <div class="inv-stat" style="border-left: 4px solid #5211d4; background: #ffffff;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div class="inv-stat-label" style="margin-bottom:0;">TOTAL PRODUCTS</div>
-        <i data-lucide="package" style="color:var(--color-text-tertiary); width:20px;height:20px;"></i>
-      </div>
-      <div class="inv-stat-value" style="font-size:28px; font-weight:700;">${total}</div>
-    </div>
-    <div class="inv-stat" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div class="inv-stat-label" style="margin-bottom:0;">LOW STOCK</div>
-        <i data-lucide="alert-triangle" style="color:#d97706; width:20px;height:20px;"></i>
-      </div>
-      <div class="inv-stat-value" style="font-size:28px; font-weight:700; color:#d97706;">${low}</div>
-    </div>
-    <div class="inv-stat" style="border-left: 4px solid #ef4444; background: #fff1f2;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div class="inv-stat-label" style="margin-bottom:0;">OUT OF STOCK</div>
-        <i data-lucide="x-circle" style="color:#dc2626; width:20px;height:20px;"></i>
-      </div>
-      <div class="inv-stat-value" style="font-size:28px; font-weight:700; color:#dc2626;">${oos}</div>
-    </div>
-  `;
+  // Update stat elements directly if they exist (IDs set in inventory.html)
+  const elTotal = document.getElementById("statTotal");
+  const elLow   = document.getElementById("statLow");
+  const elOut   = document.getElementById("statOut");
+  if (elTotal) { elTotal.textContent = total; elTotal.classList.add("amount"); }
+  if (elLow)   { elLow.textContent   = low;   elLow.classList.add("amount"); }
+  if (elOut)   { elOut.textContent   = oos;   elOut.classList.add("amount"); }
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -305,6 +294,9 @@ function renderTable() {
   let items = allItems;
   if (activeCat !== "all") items = items.filter(p => p.category === activeCat);
   if (searchTerm) items = items.filter(p => p.name.toLowerCase().includes(searchTerm));
+  // Stock filter from jQuery buttons
+  if (stockFilter === "low") items = items.filter(p => p.stock > 0 && p.stock <= 5);
+  if (stockFilter === "oos") items = items.filter(p => p.stock <= 0);
 
   if (items.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i data-lucide="package-search" style="width:48px;height:48px;opacity:0.3"></i><p>No items found</p></div></td></tr>`;
@@ -331,7 +323,7 @@ function renderTable() {
             </div>
           </div>
         </td>
-        <td class="mono" style="font-weight:700;">${fmtINR(p.price)}</td>
+        <td class="amount">${fmtINR(p.price)}</td>
         <td><strong>${p.stock}</strong> units</td>
         <td>${statusBadge}</td>
         <td>

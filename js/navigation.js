@@ -1,4 +1,4 @@
-﻿// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // KERALA SMART POS — NAVIGATION COMPONENT
 // js/navigation.js
 // ═══════════════════════════════════════════════════════
@@ -192,9 +192,6 @@ window.relativeTime = (ts) => {
 };
 
 window.toggleSidebar = function() {
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar) {
-    sidebar.classList.toggle("active");
-  }
+  document.body.classList.toggle("sidebar-open");
 };
 

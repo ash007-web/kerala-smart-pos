@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -221,9 +221,9 @@
       const count    = allTx.length;
       const avg      = count ? revenue / count : 0;
       const statHtml = [
-        { ico:"trending-up",  bg:"#d1fae5", ic:"var(--color-success)", label:"Total Revenue", value: fmtINR(revenue), sub:`From ${count} bills` },
-        { ico:"receipt-text", bg:"#fef3c7", ic:"var(--color-warning)", label:"Bills Issued",  value: count, sub:"Lifetime total" },
-        { ico:"bar-chart-2",  bg:"#e0e7ff", ic:"var(--color-primary)", label:"Avg. Bill",     value: fmtINRShort(avg), sub:"Per transaction" },
+        { ico:"trending-up",  bg:"#d1fae5", ic:"var(--color-success)", label:"Total Revenue", value: fmtINR(revenue), sub:`From ${count} bills`, cls: "amount-positive" },
+        { ico:"receipt-text", bg:"#fef3c7", ic:"var(--color-warning)", label:"Bills Issued",  value: count, sub:"Lifetime total", cls: "" },
+        { ico:"bar-chart-2",  bg:"#e0e7ff", ic:"var(--color-primary)", label:"Avg. Bill",     value: fmtINRShort(avg), sub:"Per transaction", cls: "" },
       ].map(s => `
         <div class="lstat anim-fade-up">
           <div class="lstat-ico" style="background:${s.bg};">
@@ -231,7 +231,7 @@
           </div>
           <div>
             <div class="lstat-label">${s.label}</div>
-            <div class="lstat-value">${s.value}</div>
+            <div class="lstat-value amount-total ${s.cls}">${s.value}</div>
             <div class="lstat-sub">${s.sub}</div>
           </div>
         </div>`).join("");
@@ -276,7 +276,7 @@
               </div>
             </td>
             <td>${statusBadge}</td>
-            <td class="text-right mono" style="font-weight:var(--font-weight-bold);">${fmtINR(t.total)}</td>
+            <td class="text-right"><span class="amount ${t.status === 'refunded' ? 'amount-negative' : 'amount-positive'}">${fmtINR(t.total)}</span></td>
             <td class="text-right">
               <button class="icon-btn" onclick="toggleExpand('${rowId}')" title="View items">
                 <i data-lucide="chevron-down" id="expand-icon-${rowId}"></i>
@@ -293,13 +293,13 @@
                   <div class="expand-item-row">
                     <span>${item.name}</span>
                     <span class="mono">${item.qty}</span>
-                    <span class="mono">${fmtINR(item.price)}</span>
-                    <span class="mono">${fmtINR(item.lineTotal)}</span>
+                    <span class="amount amount-muted" style="font-size:0.9rem">${fmtINR(item.price)}</span>
+                    <span class="amount" style="font-size:0.9rem">${fmtINR(item.lineTotal)}</span>
                   </div>`).join("")}
                 <div style="display:flex;justify-content:flex-end;gap:24px;margin-top:10px;padding-top:10px;border-top:1px solid var(--color-border);font-size:var(--font-size-small);">
-                  <span>Subtotal: <strong class="mono">${fmtINR(t.subtotal)}</strong></span>
-                  <span>GST: <strong class="mono">${fmtINR(t.tax)}</strong></span>
-                  <span style="font-size:var(--font-size-body);">Total: <strong class="mono" style="color:var(--color-primary);">${fmtINR(t.total)}</strong></span>
+                  <span>Subtotal: <strong class="amount amount-muted" style="font-size:0.9rem">${fmtINR(t.subtotal)}</strong></span>
+                  <span>GST: <strong class="amount amount-muted" style="font-size:0.9rem">${fmtINR(t.tax)}</strong></span>
+                  <span style="font-size:var(--font-size-body); display:flex; align-items:center; gap:8px;">Total: <strong class="amount-total">${fmtINR(t.total)}</strong></span>
                 </div>
               </div>
             </td>
@@ -390,24 +390,41 @@
       }
     };
 
-    // ── CSV Export ────────────────────────────────────────
+    // ── CSV Export (item-level) ───────────────────────────────────
     window.exportCSV = function() {
-      const headers = ["Bill ID","Date","Time","Items","Payment","Status","Subtotal","Tax","Total"];
-      const rows = filtered.map(t => [
-        t.billId ?? t.id,
-        fmtDate(t.timestamp),
-        fmtTime(t.timestamp),
-        (t.items??[]).length,
-        t.paymentMethod,
-        t.status,
-        t.subtotal, t.tax, t.total
-      ]);
+      const headers = ["Date","Bill ID","Item Name","Qty","Unit Price (₹)","Line Total (₹)","Payment Method","Status"];
+      const rows = [];
+      filtered.forEach(t => {
+        const date    = fmtDate(t.timestamp);
+        const time    = fmtTime(t.timestamp);
+        const billId  = t.billId ?? t.id;
+        const method  = t.paymentMethod ?? "—";
+        const status  = t.status ?? "—";
+        const items   = t.items ?? [];
+        if (items.length === 0) {
+          // bill with no items detail — still export summary row
+          rows.push([date + " " + time, billId, "(no item detail)", "", "", t.total, method, status]);
+        } else {
+          items.forEach(item => {
+            rows.push([
+              date + " " + time,
+              billId,
+              item.name,
+              item.qty,
+              item.price,
+              item.lineTotal ?? (item.price * item.qty).toFixed(2),
+              method,
+              status
+            ]);
+          });
+        }
+      });
       const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
       const a = document.createElement("a");
-      a.href = "data:text/csv," + encodeURIComponent(csv);
-      a.download = `ledger-${new Date().toISOString().split("T")[0]}.csv`;
+      a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      a.download = `ledger-items-${new Date().toISOString().split("T")[0]}.csv`;
       a.click();
-      showToast("CSV exported!", "success");
+      showToast(`CSV exported — ${rows.length} item rows`, "success");
     };
 
     window.addEventListener("beforeunload", () => unsub?.());

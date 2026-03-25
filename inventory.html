@@ -119,15 +119,19 @@
     <div class="inv-stats anim-fade-up d1" id="invStats">
       <div class="inv-stat" style="border-left:4px solid var(--color-primary);">
         <div class="inv-stat-label">TOTAL PRODUCTS</div>
-        <div class="inv-stat-value" id="statTotal">—</div>
+        <div class="inv-stat-value amount" id="statTotal">—</div>
       </div>
-      <div class="inv-stat" style="background:#fffbeb;border-left:4px solid var(--color-warning);">
-        <div class="inv-stat-label" style="color:#92400e;">LOW STOCK</div>
-        <div class="inv-stat-value" id="statLow" style="color:var(--color-warning);">—</div>
+      <div class="inv-stat clickable-card" id="filterLowStock"
+           style="background:#fffbeb;border-left:4px solid var(--color-warning);cursor:pointer;"
+           title="Click to filter low stock items">
+        <div class="inv-stat-label" style="color:#92400e;">LOW STOCK 👌</div>
+        <div class="inv-stat-value amount" id="statLow" style="color:var(--color-warning);">—</div>
       </div>
-      <div class="inv-stat" style="background:#fef2f2;border-left:4px solid var(--color-danger);">
-        <div class="inv-stat-label" style="color:#991b1b;">OUT OF STOCK</div>
-        <div class="inv-stat-value" id="statOut" style="color:var(--color-danger);">—</div>
+      <div class="inv-stat clickable-card" id="filterOutOfStock"
+           style="background:#fef2f2;border-left:4px solid var(--color-danger);cursor:pointer;"
+           title="Click to filter out-of-stock items">
+        <div class="inv-stat-label" style="color:#991b1b;">OUT OF STOCK 🚫</div>
+        <div class="inv-stat-value amount" id="statOut" style="color:var(--color-danger);">—</div>
       </div>
     </div>
 
@@ -153,6 +157,9 @@
       </button>
       <button class="cat-tab" data-cat="household">
         <i data-lucide="spray-can"></i> Household
+      </button>
+      <button class="cat-tab" data-cat="stationary">
+        <i data-lucide="pencil"></i> Stationary
       </button>
     </div>
 
@@ -209,6 +216,7 @@
             <option value="beverages">Beverages</option>
             <option value="toiletries">Toiletries</option>
             <option value="household">Household</option>
+            <option value="stationary">Stationary</option>
           </select>
         </div>
         <div class="form-group">
@@ -293,6 +301,69 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-ui.js"></script>
   <script src="/js/ajax-service.js"></script>
+
+  <script>
+  // ── jQuery Interactions: Inventory Page ───────────────────────────────
+  $(function() {
+    // 1. Hover animation on inventory stat cards
+    $(document).on("mouseenter", ".inv-stat", function() {
+      $(this).css({
+        "transform":  "translateY(-4px)",
+        "box-shadow": "0 10px 28px rgba(44,24,16,0.12)",
+        "transition": "transform 200ms ease, box-shadow 200ms ease"
+      });
+    }).on("mouseleave", ".inv-stat", function() {
+      $(this).css({ "transform": "", "box-shadow": "" });
+    });
+
+    // 2. Table row hover
+    $(document).on("mouseenter", ".ksp-table tbody tr", function() {
+      $(this).css("transition", "background 180ms ease");
+    });
+
+    // 3. Low Stock filter click
+    $("#filterLowStock").on("click", function() {
+      if (window.invFilterByStock) {
+        window.invFilterByStock('low');
+      } else {
+        // fallback: activate Low Stock search if JS not loaded yet
+        $("#invSearch").val("low").trigger("input");
+      }
+      showFilterBanner('low');
+    });
+
+    // 4. Out of Stock filter click
+    $("#filterOutOfStock").on("click", function() {
+      if (window.invFilterByStock) {
+        window.invFilterByStock('oos');
+      } else {
+        $("#invSearch").val("").trigger("input");
+      }
+      showFilterBanner('oos');
+    });
+
+    function showFilterBanner(type) {
+      var existing = $("#invFilterBanner");
+      if (existing.length) existing.remove();
+      var label = type === 'low' ? 'Showing: Low Stock Items' : 'Showing: Out of Stock Items';
+      var color = type === 'low' ? '#92400e' : '#991b1b';
+      var bg    = type === 'low' ? '#fff7ed' : '#fef2f2';
+      var banner = $('<div id="invFilterBanner"></div>').css({
+        'background': bg, 'color': color,
+        'border': '1px solid ' + (type === 'low' ? '#fde68a' : '#fecaca'),
+        'border-radius': '8px', 'padding': '10px 16px',
+        'margin-bottom': '12px', 'font-size': '0.875rem', 'font-weight': '600',
+        'display': 'flex', 'align-items': 'center', 'justify-content': 'space-between'
+      });
+      var resetBtn = $('<button class="btn btn-ghost btn-sm">Show All</button>').on('click', function() {
+        if (window.invFilterByStock) window.invFilterByStock('all');
+        banner.remove();
+      });
+      banner.append('<span>' + label + '</span>').append(resetBtn);
+      $(".cat-tabs").before(banner);
+    }
+  });
+  </script>
 </body>
 </html>
 

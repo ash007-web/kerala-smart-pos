@@ -151,11 +151,21 @@
     .alert-list { display: flex; flex-direction: column; gap: 8px; }
     .alert-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 12px; border-radius: var(--r-md);
-      background: var(--red-50); border: 1px solid var(--red-200);
+      padding: 10px 14px; border-radius: var(--r-md);
+      border-left: 4px solid #f59e0b;
+      background: #fff7ed;
+      border: 1px solid #fde68a;
+      border-left: 4px solid #f59e0b;
+      transition: box-shadow 200ms var(--ease);
     }
-    .alert-name { font-size: 0.85rem; font-weight: 600; color: var(--red-600); }
-    .alert-qty  { font-size: 0.78rem; font-family: var(--font-mono); color: var(--red-400); font-weight: 700; }
+    .alert-row.low  { border-left: 4px solid #f59e0b; background: #fff7ed; }
+    .alert-row.oos  { border-left: 4px solid var(--red-400); background: var(--red-50); }
+    .alert-row:first-child { animation: pulse-glow 2.4s ease-in-out infinite; }
+    .alert-name { font-size: 0.85rem; font-weight: 600; color: #92400e; }
+    .alert-row.oos .alert-name { color: var(--red-600); }
+    .alert-qty  { font-size: 0.78rem; font-family: var(--font-mono); color: #d97706; font-weight: 700; }
+    .alert-row.oos .alert-qty  { color: var(--red-400); }
+    .alert-icon { font-size: 1rem; margin-right: 6px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -328,24 +338,26 @@
       stats.push({
         icon:"alert-triangle", iconBg:"#fef3c7", iconColor:"#d97706",
         label:"Low Stock Items", value: lowStockCount,
-        trend:'<a href="inventory.html" style="color:var(--color-warning);font-weight:600;">View Details &rarr;</a>',
-        trendClass:"alert-card", raw:true
+        trend:'<a href="inventory.html" style="color:var(--color-warning);font-weight:600;">View in Inventory &rarr;</a>',
+        trendClass:"alert-card", raw:true, clickId:"statCardLowStock"
       });
 
       document.getElementById("statsRow").innerHTML = stats.map((s,i) => `
-        <div class="card stat-card ${s.trendClass ?? ''} anim-fade-up d${i+1}">
+        <div class="card stat-card ${s.trendClass ?? ''} anim-fade-up d${i+1}${s.clickId ? ' clickable-card' : ''}" ${s.clickId ? `id="${s.clickId}" title="Click to view details"` : ''}>
           <div class="stat-card-header">
             <div class="stat-icon" style="background:${s.iconBg};color:${s.iconColor};">
               <i data-lucide="${s.icon}"></i>
             </div>
             <p class="stat-label">${s.label}</p>
           </div>
-          <p class="stat-value">${s.value}</p>
+          <p class="stat-value amount">${s.value}</p>
           <p class="stat-trend">${s.raw ? s.trend : `<i data-lucide="clock"></i>${s.trend}`}</p>
         </div>
       `).join("");
       
       lucide.createIcons();
+      // Wire clickable stat cards via jQuery after render
+      if (window.$) initStatCardClicks();
     }
 
     function renderPaymentMix(breakdown) {
@@ -397,30 +409,119 @@
 
     // ── Low stock alerts ─────────────────────────────────────────
     function renderAlerts(items) {
-      window._lowStock = items.length;
+      window._lowStock = items;
       const el = document.getElementById("alertList");
       if (!el) return;
       if (items.length === 0) {
-        el.innerHTML = `<div style="color:var(--color-success);font-size:var(--font-body);display:flex;align-items:center;gap:6px;">
-          <i data-lucide="check-circle" style="width:16px;height:16px;"></i> All stock levels are OK
+        el.innerHTML = `<div style="color:var(--green-600);font-size:0.875rem;display:flex;align-items:center;gap:8px;padding:8px 0;">
+          <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+          <span>All stock levels are healthy</span>
         </div>`;
         lucide.createIcons();
         return;
       }
-      el.innerHTML = items.map(p => `
-        <div class="alert-row">
-          <span class="alert-name">${p.name}</span>
-          <span class="alert-qty">${p.stock} left</span>
-        </div>`).join("");
+      el.innerHTML = items.map((p,i) => {
+        const oos = p.stock <= 0;
+        return `<div class="alert-row ${oos ? 'oos' : 'low'}">
+          <span class="alert-icon">${oos ? '🔴' : '⚠️'}</span>
+          <span class="alert-name" style="flex:1">${p.name}</span>
+          <span class="alert-qty">${oos ? 'Out of stock' : p.stock + ' left'}</span>
+        </div>`;
+      }).join("");
     }
 
     loadDashboard();
 
     } // end if (currentUser)
   </script>
+
+  <!-- Stock Filter Modal -->
+  <div class="stock-filter-modal" id="stockFilterModal">
+    <div class="stock-filter-box">
+      <div class="stock-filter-header">
+        <h3 id="filterModalTitle">⚠️ Low Stock Items</h3>
+        <button class="icon-btn" id="closeFilterModal" title="Close">
+          <i data-lucide="x" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
+      <div class="stock-filter-body" id="filterModalBody">
+        <div class="stock-empty-msg">Loading…</div>
+      </div>
+      <div style="padding:12px 24px 20px;border-top:1px solid var(--border-subtle);display:flex;justify-content:flex-end;gap:8px;">
+        <a href="inventory.html" class="btn btn-ghost btn-sm">View Inventory</a>
+        <button class="btn btn-primary btn-sm" id="closeFilterModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- jQuery & AJAX -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-ui.js"></script>
   <script src="/js/ajax-service.js"></script>
+
+  <script>
+  // ── jQuery Interactions: Dashboard ──────────────────────────────────────
+  $(function() {
+
+    // 1. Hover animation on stat cards
+    $(document).on("mouseenter", ".stat-card", function() {
+      $(this).css({
+        "transform": "translateY(-4px)",
+        "box-shadow": "0 12px 32px rgba(44,24,16,0.14)",
+        "border-color": "#EF9F27",
+        "transition": "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease"
+      });
+    }).on("mouseleave", ".stat-card", function() {
+      $(this).css({
+        "transform": "",
+        "box-shadow": "",
+        "border-color": ""
+      });
+    });
+
+    // 2. Hover animation on table rows
+    $(document).on("mouseenter", ".ksp-table tbody tr", function() {
+      $(this).css("transition", "background 180ms ease");
+    });
+
+    // 3. Close modal handlers
+    $("#closeFilterModal, #closeFilterModalBtn").on("click", function() {
+      $("#stockFilterModal").removeClass("show");
+    });
+    $("#stockFilterModal").on("click", function(e) {
+      if ($(e.target).is("#stockFilterModal")) $(this).removeClass("show");
+    });
+
+    // Escape key closes modal
+    $(document).on("keydown", function(e) {
+      if (e.key === "Escape") $("#stockFilterModal").removeClass("show");
+    });
+  });
+
+  // Called after stat cards render
+  function initStatCardClicks() {
+    $("#statCardLowStock").on("click", function() {
+      const items = window._lowStock || [];
+      const modal = $("#stockFilterModal");
+      const body  = $("#filterModalBody");
+      $("#filterModalTitle").text("⚠️ Low Stock Items (" + items.length + ")");
+      if (items.length === 0) {
+        body.html('<div class="stock-empty-msg">✅ All stock levels are healthy!</div>');
+      } else {
+        body.html(items.map(function(p) {
+          const oos = p.stock <= 0;
+          return '<div class="stock-filter-item ' + (oos ? 'danger' : 'warn') + '">' +
+            '<span class="stock-filter-name">' + p.name + '</span>' +
+            '<span class="stock-filter-qty">' + (oos ? 'Out of stock' : p.stock + ' left') + '</span>' +
+          '</div>';
+        }).join(''));
+      }
+      modal.addClass("show");
+      // Re-init Lucide inside modal
+      if (window.lucide) window.lucide.createIcons();
+    });
+  }
+  window.initStatCardClicks = initStatCardClicks;
+  </script>
 </body>
 </html>

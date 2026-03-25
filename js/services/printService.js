@@ -187,9 +187,10 @@ function generateReceiptHTML(tx) {
       <tr>
         <td>
           <div class="item-name">${i.name}</div>
-          <div class="item-unit">₹${parseFloat(i.price).toFixed(2)} × ${i.qty}</div>
         </td>
-        <td>₹${lineTotal}</td>
+        <td style="text-align:center;font-size:12px;color:#6b7280;">${i.qty}</td>
+        <td style="text-align:right;font-size:12px;color:#6b7280;">₹${parseFloat(i.price).toFixed(2)}</td>
+        <td style="text-align:right;font-weight:600;">₹${lineTotal}</td>
       </tr>`;
   }).join('');
 
@@ -211,16 +212,18 @@ function generateReceiptHTML(tx) {
       <div>${dateStr}</div>
     </div>
 
-    <div class="items-label">Items</div>
+    <div class="items-label">Items Purchased</div>
     <table>
       <thead>
         <tr>
-          <th>Item</th>
-          <th>Amount</th>
+          <th style="width:45%">Item</th>
+          <th style="width:15%;text-align:center">Qty</th>
+          <th style="width:20%;text-align:right">Unit ₹</th>
+          <th style="width:20%;text-align:right">Total</th>
         </tr>
       </thead>
       <tbody>
-        ${itemsHTML || '<tr><td colspan="2" style="color:#9ca3af;font-size:12px;">No items</td></tr>'}
+        ${itemsHTML || '<tr><td colspan="4" style="color:#9ca3af;font-size:12px;">No items</td></tr>'}
       </tbody>
     </table>
 
